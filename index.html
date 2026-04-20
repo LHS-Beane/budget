@@ -6,1202 +6,803 @@
   <title>Budget Decision Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {
-      --bg: #0b1220;
-      --panel: #121b2d;
-      --panel-2: #17233a;
-      --panel-3: #0f1728;
-      --text: #e8eefc;
-      --muted: #9fb0d1;
-      --accent: #5fb0ff;
-      --accent-2: #7ef0c7;
-      --warn: #ffb85c;
-      --danger: #ff6b6b;
-      --good: #63e6be;
-      --border: rgba(255,255,255,0.08);
-      --shadow: 0 16px 40px rgba(0,0,0,0.24);
-      --radius: 18px;
+    :root{
+      --bg:#0b1220; --panel:#121b2d; --panel2:#17233a; --text:#e8eefc; --muted:#9fb0d1;
+      --accent:#5fb0ff; --accent2:#7ef0c7; --warn:#ffb85c; --danger:#ff6b6b; --good:#63e6be;
+      --border:rgba(255,255,255,.08); --shadow:0 16px 40px rgba(0,0,0,.24); --radius:18px;
     }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{
+      margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);
       background:
-        radial-gradient(circle at top right, rgba(95,176,255,0.16), transparent 24%),
-        radial-gradient(circle at left top, rgba(126,240,199,0.10), transparent 25%),
-        var(--bg);
-      color: var(--text);
-      min-height: 100vh;
+      radial-gradient(circle at top right, rgba(95,176,255,.16), transparent 24%),
+      radial-gradient(circle at left top, rgba(126,240,199,.10), transparent 25%),
+      var(--bg);
     }
-    .container { width: min(1480px, calc(100% - 28px)); margin: 20px auto 60px; }
-    .hero {
-      background: linear-gradient(135deg, rgba(95,176,255,0.16), rgba(126,240,199,0.08));
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      border-radius: 24px;
-      padding: 28px;
-      margin-bottom: 18px;
+    .container{width:min(1480px,calc(100% - 28px));margin:20px auto 60px}
+    .hero,.panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      border:1px solid var(--border); box-shadow:var(--shadow); border-radius:24px; padding:22px;
     }
-    h1, h2, h3 { margin: 0 0 10px; }
-    h1 { font-size: clamp(1.9rem, 3vw, 3rem); }
-    h2 { font-size: 1.25rem; }
-    h3 { font-size: 1rem; }
-    p { color: var(--muted); line-height: 1.55; }
-    .toolbar, .chip-row, .nav-tabs {
-      display: flex; flex-wrap: wrap; gap: 10px;
+    .hero{margin-bottom:18px}
+    h1,h2,h3{margin:0 0 10px} h1{font-size:clamp(1.9rem,3vw,3rem)} h2{font-size:1.2rem}
+    p{color:var(--muted);line-height:1.55}
+    .toolbar,.nav-tabs,.row-actions{display:flex;gap:10px;flex-wrap:wrap}
+    button,.file-label,.tab-btn{
+      background:#1d2b46;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:10px 14px;
+      font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;
     }
-    .toolbar { margin-top: 14px; }
-    .nav-tabs { margin-top: 16px; }
-    .tab-btn, button, .file-label {
-      background: #1d2b46;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+    button:hover,.tab-btn:hover,.file-label:hover{transform:translateY(-1px);background:#223354}
+    .primary{background:linear-gradient(135deg,#2e83ff,#2aa9d1)}
+    .warn{background:linear-gradient(135deg,#b06f1d,#d6862c)} .danger{background:linear-gradient(135deg,#a53535,#c24545)}
+    .tab-btn.active{background:linear-gradient(135deg,#2e83ff,#2aa9d1)}
+    input[type=file]{display:none}
+    .page{display:none}.page.active{display:block}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+    .span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-6{grid-column:span 6}.span-4{grid-column:span 4}
+    @media(max-width:1100px){.span-8,.span-6,.span-4{grid-column:span 12}}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:580px){.stat-grid{grid-template-columns:1fr}}
+    .stat{border:1px solid var(--border);border-radius:16px;padding:14px;background:var(--panel2)}
+    .label{font-size:.88rem;color:var(--muted);margin-bottom:8px}
+    .value{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+    .small{font-size:.85rem;color:var(--muted)} .good{color:var(--good)} .warn-text{color:var(--warn)} .danger-text{color:var(--danger)}
+    .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:16px;margin-top:12px}
+    table{width:100%;border-collapse:collapse;min-width:860px;background:rgba(9,14,24,.35)}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle}
+    th{position:sticky;top:0;background:#19253c;z-index:1;font-size:.9rem}
+    tr:last-child td{border-bottom:none}
+    input[type=text],input[type=number],select,textarea{
+      width:100%;background:#0f1728;color:var(--text);border:1px solid rgba(255,255,255,.12);
+      border-radius:10px;padding:10px 12px;font:inherit
     }
-    .tab-btn.active { background: linear-gradient(135deg, #2e83ff, #2aa9d1); }
-    button:hover, .file-label:hover, .tab-btn:hover { transform: translateY(-1px); background: #223354; }
-    button.primary { background: linear-gradient(135deg, #2e83ff, #2aa9d1); }
-    button.warn { background: linear-gradient(135deg, #b06f1d, #d6862c); }
-    button.danger { background: linear-gradient(135deg, #a53535, #c24545); }
-    input[type="file"] { display: none; }
-    .chip {
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border);
-      font-size: 0.82rem;
-      color: var(--muted);
-    }
-    .page { display: none; }
-    .page.active { display: block; }
-    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
-    .panel {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(6px);
-    }
-    .span-12 { grid-column: span 12; }
-    .span-8 { grid-column: span 8; }
-    .span-7 { grid-column: span 7; }
-    .span-6 { grid-column: span 6; }
-    .span-5 { grid-column: span 5; }
-    .span-4 { grid-column: span 4; }
-    .span-3 { grid-column: span 3; }
-    @media (max-width: 1100px) {
-      .span-8, .span-7, .span-6, .span-5, .span-4, .span-3 { grid-column: span 12; }
-    }
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 14px;
-    }
-    .mini-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 14px;
-    }
-    @media (max-width: 900px) {
-      .stat-grid, .mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 580px) {
-      .stat-grid, .mini-grid { grid-template-columns: 1fr; }
-    }
-    .stat {
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
-      background: var(--panel-2);
-    }
-    .label { font-size: 0.88rem; color: var(--muted); margin-bottom: 8px; }
-    .value { font-size: 1.65rem; font-weight: 800; letter-spacing: -0.02em; }
-    .small { font-size: 0.85rem; color: var(--muted); }
-    .good { color: var(--good); }
-    .warn-text { color: var(--warn); }
-    .danger-text { color: var(--danger); }
-    .two-col, .three-col {
-      display: grid; gap: 14px; margin-top: 12px;
-    }
-    .two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    @media (max-width: 900px) {
-      .two-col, .three-col { grid-template-columns: 1fr; }
-    }
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      margin-top: 12px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 850px;
-      background: rgba(9,14,24,0.35);
-    }
-    th, td {
-      padding: 12px 10px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      vertical-align: middle;
-    }
-    th {
-      position: sticky;
-      top: 0;
-      background: #19253c;
-      z-index: 1;
-      font-size: 0.9rem;
-    }
-    tr:last-child td { border-bottom: none; }
-    input[type="text"], input[type="number"], select, textarea {
-      width: 100%;
-      background: #0f1728;
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font: inherit;
-    }
-    textarea { min-height: 74px; resize: vertical; }
-    input[type="checkbox"] { width: 18px; height: 18px; accent-color: #54a8ff; }
-    .number { text-align: right; font-variant-numeric: tabular-nums; }
-    .callout {
-      border-left: 4px solid var(--accent);
-      padding: 12px 14px;
-      background: rgba(95,176,255,0.08);
-      border-radius: 12px;
-      color: #dce8ff;
-      margin-top: 12px;
-      line-height: 1.5;
-    }
-    .callout.warn { border-left-color: var(--warn); background: rgba(255,184,92,0.08); }
-    .callout.danger { border-left-color: var(--danger); background: rgba(255,107,107,0.08); }
-    .bar {
-      height: 12px; border-radius: 999px; background: #0d1424; overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .bar > span {
-      display: block; height: 100%; background: linear-gradient(90deg, #5fb0ff, #7ef0c7); width: 0%; transition: width 0.25s ease;
-    }
-    .chart-box {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 12px;
-      margin-top: 12px;
-      min-height: 320px;
-    }
-    .footer-note { margin-top: 10px; color: var(--muted); font-size: 0.9rem; }
-    .section-title { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    textarea{min-height:74px;resize:vertical} input[type=checkbox]{width:18px;height:18px;accent-color:#54a8ff}
+    .number{text-align:right;font-variant-numeric:tabular-nums}
+    .callout{border-left:4px solid var(--accent);padding:12px 14px;background:rgba(95,176,255,.08);border-radius:12px;color:#dce8ff;line-height:1.5}
+    .callout.warn{border-left-color:var(--warn);background:rgba(255,184,92,.08)}
+    .callout.danger{border-left-color:var(--danger);background:rgba(255,107,107,.08)}
+    .chart-box{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:16px;padding:12px;margin-top:12px;min-height:320px}
+    .section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .chip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:.82rem;color:var(--muted)}
+    .stack{display:grid;gap:12px}
   </style>
 </head>
 <body>
-  <div class="container">
-    <section class="hero">
-      <h1>Budget Decision Dashboard</h1>
-      <p>Built for private GitHub hosting. Enter biweekly pay, child support, stipends, savings buckets, debt, annual bills, and vehicle scenarios. This version is meant to help you make decisions, not just store numbers.</p>
-      <div class="toolbar">
-        <button class="primary" id="addIncomeBtn">Add Income Stream</button>
-        <button id="addItemBtn">Add Budget Item</button>
-        <button id="addBucketBtn">Add Savings Bucket</button>
-        <button id="addScenarioBtn">Add Scenario</button>
-        <button class="warn" id="exportBtn">Export Data</button>
-        <label class="file-label" for="importFile">Import Data</label>
-        <input type="file" id="importFile" accept="application/json" />
-        <button class="danger" id="resetBtn">Reset Sample</button>
-      </div>
-      <div class="chip-row" style="margin-top:12px;">
-        <span class="chip">Autosaves to your browser</span>
-        <span class="chip">Weekly / biweekly / monthly income</span>
-        <span class="chip">Savings-bucket forecasting</span>
-        <span class="chip">Decision scoring + charts</span>
-        <span class="chip">Single file for GitHub Pages</span>
-      </div>
-      <div class="nav-tabs" id="navTabs">
-        <button class="tab-btn active" data-page="overview">Overview</button>
-        <button class="tab-btn" data-page="income">Income</button>
-        <button class="tab-btn" data-page="budget">Budget</button>
-        <button class="tab-btn" data-page="buckets">Savings Buckets</button>
-        <button class="tab-btn" data-page="scenarios">Scenarios</button>
-        <button class="tab-btn" data-page="forecast">Forecast</button>
-      </div>
-    </section>
+<div class="container">
+  <section class="hero">
+    <h1>Budget Decision Dashboard</h1>
+    <p>Single-file, GitHub-friendly, and refactored so typing no longer rebuilds the table and steals focus. Enter real income cadence, expenses, savings buckets, and vehicle scenarios. Then use the forecast to pressure-test decisions.</p>
+    <div class="toolbar">
+      <button class="primary" id="addIncomeBtn">Add Income Stream</button>
+      <button id="addItemBtn">Add Budget Item</button>
+      <button id="addBucketBtn">Add Savings Bucket</button>
+      <button id="addScenarioBtn">Add Scenario</button>
+      <button class="warn" id="exportBtn">Export JSON</button>
+      <label class="file-label" for="importFile">Import JSON</label>
+      <input id="importFile" type="file" accept=".json">
+      <button class="danger" id="resetBtn">Reset Sample Data</button>
+    </div>
+    <div class="nav-tabs" style="margin-top:16px">
+      <button class="tab-btn active" data-page="overview">Overview</button>
+      <button class="tab-btn" data-page="income">Income</button>
+      <button class="tab-btn" data-page="budget">Budget</button>
+      <button class="tab-btn" data-page="buckets">Buckets</button>
+      <button class="tab-btn" data-page="scenarios">Scenarios</button>
+      <button class="tab-btn" data-page="forecast">Forecast</button>
+    </div>
+  </section>
 
-    <section class="page active" id="page-overview">
-      <div class="grid">
-        <section class="panel span-8">
-          <div class="section-title"><h2>Big Picture</h2></div>
-          <div class="two-col">
-            <div>
-              <label class="small">Emergency fund target</label>
-              <input type="number" id="emergencyTargetInput" step="0.01" />
-            </div>
-            <div>
-              <label class="small">Forecast horizon (months)</label>
-              <input type="number" id="forecastMonthsInput" min="1" step="1" />
-            </div>
+  <section class="page active" id="page-overview">
+    <div class="grid">
+      <div class="panel span-12">
+        <div class="section-title">
+          <h2>Top-line picture</h2>
+          <div class="row-actions">
+            <span class="chip" id="syncStatus">Autosave on</span>
           </div>
-          <div class="stat-grid" id="topStats"></div>
-          <div class="callout" id="headlineMessage"></div>
-          <div class="chart-box"><canvas id="cashFlowChart"></canvas></div>
-        </section>
-
-        <section class="panel span-4">
-          <h2>Budget Health</h2>
-          <div class="mini-grid" id="healthCards"></div>
-          <div class="footer-note">This is a pressure test. It highlights which choice protects breathing room, debt progress, and your future buckets.</div>
-        </section>
-
-        <section class="panel span-6">
-          <h2>Breakdown</h2>
-          <div class="stat-grid" id="breakdownStats"></div>
-          <div style="margin-top:14px; display:grid; gap:12px;">
-            <div>
-              <div class="small" style="margin-bottom:6px;">Required + essentials as % of income</div>
-              <div class="bar"><span id="needsBar"></span></div>
-            </div>
-            <div>
-              <div class="small" style="margin-bottom:6px;">Buckets + wealth-building as % of income</div>
-              <div class="bar"><span id="futureBar"></span></div>
-            </div>
-            <div>
-              <div class="small" style="margin-bottom:6px;">Lifestyle as % of income</div>
-              <div class="bar"><span id="lifestyleBar"></span></div>
-            </div>
-          </div>
-          <div id="weaknessList" style="margin-top:14px;"></div>
-        </section>
-
-        <section class="panel span-6">
-          <h2>Decision Summary</h2>
-          <div class="stat-grid" id="decisionStats"></div>
-          <div id="decisionMessage" class="callout warn"></div>
-        </section>
-      </div>
-    </section>
-
-    <section class="page" id="page-income">
-      <div class="grid">
-        <section class="panel span-12">
-          <div class="section-title"><h2>Income Streams</h2><div class="small">Use biweekly for you, your wife, child support, and recurring stipends.</div></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Frequency</th>
-                  <th>Amount</th>
-                  <th>Monthly Eq.</th>
-                  <th>Notes</th>
-                  <th>Delete</th>
-                </tr>
-              </thead>
-              <tbody id="incomeBody"></tbody>
-            </table>
-          </div>
-        </section>
-        <section class="panel span-7">
-          <h2>Income Snapshot</h2>
-          <div class="stat-grid" id="incomeStats"></div>
-          <div class="chart-box"><canvas id="incomeChart"></canvas></div>
-        </section>
-        <section class="panel span-5">
-          <h2>Pay Cadence Notes</h2>
-          <div class="callout">Biweekly pay is converted using 26 pay periods per year. That means this tool naturally captures the extra “two 3-paycheck months” effect instead of understating your annual income.</div>
-          <div class="callout warn">If a stipend is seasonal or not guaranteed, either lower the amount or put it in a separate income line so your core budget stays honest.</div>
-        </section>
-      </div>
-    </section>
-
-    <section class="page" id="page-budget">
-      <div class="grid">
-        <section class="panel span-12">
-          <h2>Budget Items</h2>
-          <p>Required and essential spending are the numbers that matter most when stress-testing a car. Annual and quarterly bills are converted to monthly equivalents so they stop hiding inside savings.</p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Type</th>
-                  <th>Frequency</th>
-                  <th>Amount</th>
-                  <th>Monthly Eq.</th>
-                  <th>Protected?</th>
-                  <th>Notes</th>
-                  <th>Delete</th>
-                </tr>
-              </thead>
-              <tbody id="itemsBody"></tbody>
-            </table>
-          </div>
-        </section>
-        <section class="panel span-6">
-          <h2>Debt Snapshot</h2>
-          <div class="stat-grid" id="debtStats"></div>
-          <div class="callout warn" id="debtMessage"></div>
-        </section>
-        <section class="panel span-6">
-          <h2>Expense Mix</h2>
-          <div class="chart-box"><canvas id="expenseChart"></canvas></div>
-        </section>
-      </div>
-    </section>
-
-    <section class="page" id="page-buckets">
-      <div class="grid">
-        <section class="panel span-12">
-          <div class="section-title"><h2>Savings Buckets</h2><div class="small">Track current balances and weekly, biweekly, or monthly contributions.</div></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Bucket</th>
-                  <th>Current Balance</th>
-                  <th>Contribution Frequency</th>
-                  <th>Contribution Amount</th>
-                  <th>Monthly Eq.</th>
-                  <th>Target</th>
-                  <th>Priority</th>
-                  <th>Notes</th>
-                  <th>Delete</th>
-                </tr>
-              </thead>
-              <tbody id="bucketBody"></tbody>
-            </table>
-          </div>
-        </section>
-        <section class="panel span-6">
-          <h2>Bucket Snapshot</h2>
-          <div class="stat-grid" id="bucketStats"></div>
-          <div id="bucketCallout" class="callout"></div>
-        </section>
-        <section class="panel span-6">
-          <h2>Bucket Growth</h2>
-          <div class="chart-box"><canvas id="bucketChart"></canvas></div>
-        </section>
-      </div>
-    </section>
-
-    <section class="page" id="page-scenarios">
-      <div class="grid">
-        <section class="panel span-12">
-          <h2>Vehicle / Decision Scenarios</h2>
-          <p>Use monthly payment changes, one-time setup costs, rentals, and optional monthly insurance or fuel changes. This is where the site helps answer “what does this do to us over the next 2 years?”</p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Scenario</th>
-                  <th>Monthly Payment Change</th>
-                  <th>Monthly Insurance Change</th>
-                  <th>Monthly Fuel Change</th>
-                  <th>One-Time Costs</th>
-                  <th>Rental Costs</th>
-                  <th>Total Horizon Cost</th>
-                  <th>Monthly Drag</th>
-                  <th>Delete</th>
-                </tr>
-              </thead>
-              <tbody id="scenarioBody"></tbody>
-            </table>
-          </div>
-        </section>
-        <section class="panel span-7">
-          <h2>Scenario Ranking</h2>
-          <div id="scenarioSummary"></div>
-        </section>
-        <section class="panel span-5">
-          <h2>Scenario Cost Chart</h2>
-          <div class="chart-box"><canvas id="scenarioChart"></canvas></div>
-        </section>
-      </div>
-    </section>
-
-    <section class="page" id="page-forecast">
-      <div class="grid">
-        <section class="panel span-12">
-          <h2>Forecast</h2>
-          <div class="three-col">
-            <div>
-              <label class="small">Which scenario to apply?</label>
-              <select id="forecastScenarioSelect"></select>
-            </div>
-            <div>
-              <label class="small">Apply leftover free cash to buckets?</label>
-              <select id="allocateSurplusSelect">
-                <option value="no">No — keep it separate</option>
-                <option value="yes">Yes — spread by bucket priority</option>
-              </select>
-            </div>
-            <div>
-              <label class="small">Annual investment return for buckets (%)</label>
-              <input type="number" id="bucketReturnInput" min="0" step="0.1" />
-            </div>
-          </div>
-          <div class="stat-grid" id="forecastStats"></div>
-          <div id="forecastMessage" class="callout"></div>
-          <div class="chart-box"><canvas id="forecastChart"></canvas></div>
-        </section>
-        <section class="panel span-6">
-          <h2>Bucket Projection Table</h2>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Bucket</th>
-                  <th>Start</th>
-                  <th>Projected End</th>
-                  <th>Target</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="forecastBucketTable"></tbody>
-            </table>
-          </div>
-        </section>
-        <section class="panel span-6">
-          <h2>What this forecast means</h2>
-          <div class="callout">This forecast is meant to answer questions like: “If we choose the Tesla option, what happens to our emergency fund, vacation fund, and debt momentum over 24 months?”</div>
-          <div class="callout warn">Forecasts are not promises. They are only as honest as the numbers you put in, especially for irregular spending and seasonal stipends.</div>
-        </section>
-      </div>
-    </section>
-  </div>
-
-  <script>
-    const STORAGE_KEY = 'budgetDecisionDashboard_v2';
-    const charts = {};
-
-    function uid() { return Math.random().toString(36).slice(2, 10); }
-
-    const sampleData = {
-      emergencyTarget: 15000,
-      forecastMonths: 24,
-      bucketReturn: 0,
-      allocateSurplus: 'no',
-      selectedForecastScenarioId: '',
-      incomes: [
-        { id: uid(), name: 'My biweekly pay', frequency: 'biweekly', amount: 3210, notes: 'Primary income' },
-        { id: uid(), name: 'Wife biweekly pay', frequency: 'biweekly', amount: 3150, notes: 'Estimate / update to net' },
-        { id: uid(), name: 'Child support', frequency: 'biweekly', amount: 250, notes: 'Her support' },
-        { id: uid(), name: 'Extra stipends', frequency: 'monthly', amount: 300, notes: 'Coaching / adjunct / misc.' }
-      ],
-      items: [
-        { id: uid(), name: 'Mortgage', type: 'required', frequency: 'monthly', amount: 1480, protected: true, notes: '' },
-        { id: uid(), name: 'Traverse payment', type: 'required', frequency: 'monthly', amount: 467, protected: false, notes: 'Current vehicle' },
-        { id: uid(), name: 'Personal loan minimum', type: 'required', frequency: 'monthly', amount: 903, protected: true, notes: 'Required payment' },
-        { id: uid(), name: 'Extra personal loan payoff', type: 'wealth', frequency: 'monthly', amount: 47, protected: false, notes: 'Extra principal' },
-        { id: uid(), name: 'Car insurance', type: 'sinking', frequency: 'annual', amount: 1300, protected: true, notes: 'Paid once a year' },
-        { id: uid(), name: 'Electric', type: 'required', frequency: 'monthly', amount: 75, protected: true, notes: '' },
-        { id: uid(), name: 'Gas utility', type: 'required', frequency: 'monthly', amount: 70, protected: true, notes: '' },
-        { id: uid(), name: 'Internet', type: 'required', frequency: 'monthly', amount: 110, protected: true, notes: '' },
-        { id: uid(), name: 'Cell phones', type: 'required', frequency: 'monthly', amount: 150, protected: true, notes: '' },
-        { id: uid(), name: 'Groceries', type: 'essential', frequency: 'monthly', amount: 1500, protected: true, notes: 'Family of 6' },
-        { id: uid(), name: 'Gasoline / charging', type: 'essential', frequency: 'monthly', amount: 220, protected: false, notes: '' },
-        { id: uid(), name: 'Household items', type: 'essential', frequency: 'monthly', amount: 100, protected: false, notes: '' },
-        { id: uid(), name: 'Eating out', type: 'lifestyle', frequency: 'monthly', amount: 250, protected: false, notes: '' },
-        { id: uid(), name: 'Alcohol', type: 'lifestyle', frequency: 'monthly', amount: 100, protected: false, notes: '' },
-        { id: uid(), name: 'Streaming / subscriptions', type: 'lifestyle', frequency: 'monthly', amount: 99, protected: false, notes: '' }
-      ],
-      buckets: [
-        { id: uid(), name: 'Emergency fund', current: 3500, contributionFrequency: 'weekly', contributionAmount: 100, target: 15000, priority: 10, notes: '' },
-        { id: uid(), name: 'Vacation fund', current: 2000, contributionFrequency: 'weekly', contributionAmount: 75, target: 6000, priority: 7, notes: '' },
-        { id: uid(), name: 'Kids / future', current: 9000, contributionFrequency: 'weekly', contributionAmount: 100, target: 12000, priority: 5, notes: '' },
-        { id: uid(), name: 'Tech / misc.', current: 1000, contributionFrequency: 'weekly', contributionAmount: 50, target: 2500, priority: 3, notes: '' }
-      ],
-      scenarios: []
-    };
-
-    sampleData.scenarios = [
-      { id: uid(), name: 'Keep Traverse + new $798 lease', monthlyDelta: 798, monthlyInsuranceDelta: 0, monthlyFuelDelta: 0, oneTime: 0, rentals: 0 },
-      { id: uid(), name: 'Replace Traverse + new $710 payment', monthlyDelta: 243, monthlyInsuranceDelta: 0, monthlyFuelDelta: -40, oneTime: 0, rentals: 0 },
-      { id: uid(), name: 'Replace Traverse + 3 rentals + Tesla setup', monthlyDelta: 243, monthlyInsuranceDelta: 0, monthlyFuelDelta: -40, oneTime: 2200, rentals: 4020 }
-    ];
-    sampleData.selectedForecastScenarioId = sampleData.scenarios[0].id;
-
-    let state = loadState();
-
-    const emergencyTargetInput = document.getElementById('emergencyTargetInput');
-    const forecastMonthsInput = document.getElementById('forecastMonthsInput');
-    const bucketReturnInput = document.getElementById('bucketReturnInput');
-    const allocateSurplusSelect = document.getElementById('allocateSurplusSelect');
-    const forecastScenarioSelect = document.getElementById('forecastScenarioSelect');
-
-    document.getElementById('addIncomeBtn').addEventListener('click', () => {
-      state.incomes.push({ id: uid(), name: 'New income', frequency: 'biweekly', amount: 0, notes: '' });
-      persistAndRender();
-    });
-    document.getElementById('addItemBtn').addEventListener('click', () => {
-      state.items.push({ id: uid(), name: 'New item', type: 'required', frequency: 'monthly', amount: 0, protected: false, notes: '' });
-      persistAndRender();
-    });
-    document.getElementById('addBucketBtn').addEventListener('click', () => {
-      state.buckets.push({ id: uid(), name: 'New bucket', current: 0, contributionFrequency: 'weekly', contributionAmount: 0, target: 0, priority: 5, notes: '' });
-      persistAndRender();
-    });
-    document.getElementById('addScenarioBtn').addEventListener('click', () => {
-      state.scenarios.push({ id: uid(), name: 'New scenario', monthlyDelta: 0, monthlyInsuranceDelta: 0, monthlyFuelDelta: 0, oneTime: 0, rentals: 0 });
-      if (!state.selectedForecastScenarioId) state.selectedForecastScenarioId = state.scenarios[state.scenarios.length - 1].id;
-      persistAndRender();
-    });
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      if (confirm('Reset everything back to the sample dashboard?')) {
-        state = structuredClone(sampleData);
-        persistAndRender();
-      }
-    });
-    document.getElementById('exportBtn').addEventListener('click', exportData);
-    document.getElementById('importFile').addEventListener('change', importData);
-
-    emergencyTargetInput.addEventListener('input', () => { state.emergencyTarget = toNum(emergencyTargetInput.value); persistAndRender(false); });
-    forecastMonthsInput.addEventListener('input', () => { state.forecastMonths = Math.max(1, parseInt(forecastMonthsInput.value || '1', 10)); persistAndRender(false); });
-    bucketReturnInput.addEventListener('input', () => { state.bucketReturn = toNum(bucketReturnInput.value); persistAndRender(false); });
-    allocateSurplusSelect.addEventListener('change', () => { state.allocateSurplus = allocateSurplusSelect.value; persistAndRender(false); });
-    forecastScenarioSelect.addEventListener('change', () => { state.selectedForecastScenarioId = forecastScenarioSelect.value; persistAndRender(false); });
-
-    document.querySelectorAll('[data-page]').forEach(btn => {
-      btn.addEventListener('click', () => switchPage(btn.dataset.page));
-    });
-
-    render();
-
-    function render() {
-      emergencyTargetInput.value = state.emergencyTarget;
-      forecastMonthsInput.value = state.forecastMonths;
-      bucketReturnInput.value = state.bucketReturn;
-      allocateSurplusSelect.value = state.allocateSurplus;
-
-      renderIncomeTable();
-      renderBudgetTable();
-      renderBucketTable();
-      renderScenarioTable();
-      renderScenarioSelect();
-      renderStatsAndCharts();
-      saveState();
-    }
-
-    function switchPage(pageName) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(`page-${pageName}`).classList.add('active');
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.page === pageName));
-      setTimeout(() => resizeCharts(), 50);
-    }
-
-    function renderIncomeTable() {
-      const body = document.getElementById('incomeBody');
-      body.innerHTML = '';
-      state.incomes.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><input type="text" value="${escapeHtml(row.name)}" data-type="income" data-id="${row.id}" data-field="name"></td>
-          <td>${frequencySelect(row, 'income')}</td>
-          <td><input type="number" step="0.01" class="number" value="${row.amount}" data-type="income" data-id="${row.id}" data-field="amount"></td>
-          <td class="number">${money(monthlyEquivalent(row.amount, row.frequency))}</td>
-          <td><input type="text" value="${escapeHtml(row.notes || '')}" data-type="income" data-id="${row.id}" data-field="notes"></td>
-          <td><button data-delete="income" data-id="${row.id}">✕</button></td>
-        `;
-        body.appendChild(tr);
-      });
-      bindTableInputs(body, handleGenericChange, handleDelete);
-    }
-
-    function renderBudgetTable() {
-      const body = document.getElementById('itemsBody');
-      body.innerHTML = '';
-      state.items.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><input type="text" value="${escapeHtml(item.name)}" data-type="item" data-id="${item.id}" data-field="name"></td>
-          <td>${typeSelect(item)}</td>
-          <td>${frequencySelect(item, 'item')}</td>
-          <td><input type="number" step="0.01" class="number" value="${item.amount}" data-type="item" data-id="${item.id}" data-field="amount"></td>
-          <td class="number">${money(monthlyEquivalent(item.amount, item.frequency))}</td>
-          <td style="text-align:center;"><input type="checkbox" ${item.protected ? 'checked' : ''} data-type="item" data-id="${item.id}" data-field="protected"></td>
-          <td><input type="text" value="${escapeHtml(item.notes || '')}" data-type="item" data-id="${item.id}" data-field="notes"></td>
-          <td><button data-delete="item" data-id="${item.id}">✕</button></td>
-        `;
-        body.appendChild(tr);
-      });
-      bindTableInputs(body, handleGenericChange, handleDelete);
-    }
-
-    function renderBucketTable() {
-      const body = document.getElementById('bucketBody');
-      body.innerHTML = '';
-      state.buckets.forEach(bucket => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><input type="text" value="${escapeHtml(bucket.name)}" data-type="bucket" data-id="${bucket.id}" data-field="name"></td>
-          <td><input type="number" step="0.01" class="number" value="${bucket.current}" data-type="bucket" data-id="${bucket.id}" data-field="current"></td>
-          <td>${bucketFrequencySelect(bucket)}</td>
-          <td><input type="number" step="0.01" class="number" value="${bucket.contributionAmount}" data-type="bucket" data-id="${bucket.id}" data-field="contributionAmount"></td>
-          <td class="number">${money(monthlyEquivalent(bucket.contributionAmount, bucket.contributionFrequency))}</td>
-          <td><input type="number" step="0.01" class="number" value="${bucket.target}" data-type="bucket" data-id="${bucket.id}" data-field="target"></td>
-          <td><input type="number" min="1" max="10" step="1" class="number" value="${bucket.priority}" data-type="bucket" data-id="${bucket.id}" data-field="priority"></td>
-          <td><input type="text" value="${escapeHtml(bucket.notes || '')}" data-type="bucket" data-id="${bucket.id}" data-field="notes"></td>
-          <td><button data-delete="bucket" data-id="${bucket.id}">✕</button></td>
-        `;
-        body.appendChild(tr);
-      });
-      bindTableInputs(body, handleGenericChange, handleDelete);
-    }
-
-    function renderScenarioTable() {
-      const body = document.getElementById('scenarioBody');
-      body.innerHTML = '';
-      state.scenarios.forEach(s => {
-        const total = scenarioTotal(s);
-        const monthlyImpact = total / state.forecastMonths;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><input type="text" value="${escapeHtml(s.name)}" data-type="scenario" data-id="${s.id}" data-field="name"></td>
-          <td><input type="number" step="0.01" class="number" value="${s.monthlyDelta}" data-type="scenario" data-id="${s.id}" data-field="monthlyDelta"></td>
-          <td><input type="number" step="0.01" class="number" value="${s.monthlyInsuranceDelta}" data-type="scenario" data-id="${s.id}" data-field="monthlyInsuranceDelta"></td>
-          <td><input type="number" step="0.01" class="number" value="${s.monthlyFuelDelta}" data-type="scenario" data-id="${s.id}" data-field="monthlyFuelDelta"></td>
-          <td><input type="number" step="0.01" class="number" value="${s.oneTime}" data-type="scenario" data-id="${s.id}" data-field="oneTime"></td>
-          <td><input type="number" step="0.01" class="number" value="${s.rentals}" data-type="scenario" data-id="${s.id}" data-field="rentals"></td>
-          <td class="number">${money(total)}</td>
-          <td class="number">${money(monthlyImpact)}</td>
-          <td><button data-delete="scenario" data-id="${s.id}">✕</button></td>
-        `;
-        body.appendChild(tr);
-      });
-      bindTableInputs(body, handleGenericChange, handleDelete);
-    }
-
-    function bindTableInputs(root, onChange, onDelete) {
-      root.querySelectorAll('input, select, textarea').forEach(el => {
-        el.addEventListener('input', onChange);
-        el.addEventListener('change', onChange);
-      });
-      root.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', onDelete));
-    }
-
-    function handleDelete(e) {
-      const group = e.target.dataset.delete;
-      const id = e.target.dataset.id;
-      const keyMap = { income: 'incomes', item: 'items', bucket: 'buckets', scenario: 'scenarios' };
-      state[keyMap[group]] = state[keyMap[group]].filter(x => x.id !== id);
-      if (group === 'scenario' && state.selectedForecastScenarioId === id) {
-        state.selectedForecastScenarioId = state.scenarios[0]?.id || '';
-      }
-      persistAndRender();
-    }
-
-    function handleGenericChange(e) {
-      const group = e.target.dataset.type;
-      const id = e.target.dataset.id;
-      const field = e.target.dataset.field;
-      if (!group || !id || !field) return;
-      const keyMap = { income: 'incomes', item: 'items', bucket: 'buckets', scenario: 'scenarios' };
-      const row = state[keyMap[group]].find(x => x.id === id);
-      if (!row) return;
-
-      if (field === 'protected') row[field] = e.target.checked;
-      else if (['amount','current','contributionAmount','target','priority','monthlyDelta','monthlyInsuranceDelta','monthlyFuelDelta','oneTime','rentals'].includes(field)) row[field] = toNum(e.target.value);
-      else row[field] = e.target.value;
-
-      if (group === 'scenario' && !state.selectedForecastScenarioId) state.selectedForecastScenarioId = id;
-      persistAndRender(false);
-    }
-
-    function renderScenarioSelect() {
-      forecastScenarioSelect.innerHTML = ['<option value="">No scenario / base budget</option>']
-        .concat(state.scenarios.map(s => `<option value="${s.id}" ${s.id === state.selectedForecastScenarioId ? 'selected' : ''}>${escapeHtml(s.name)}</option>`))
-        .join('');
-    }
-
-    function renderStatsAndCharts() {
-      const computed = computeModel();
-      renderOverview(computed);
-      renderIncomeSection(computed);
-      renderBudgetSection(computed);
-      renderBucketSection(computed);
-      renderScenarioSection(computed);
-      renderForecastSection(computed);
-    }
-
-    function computeModel() {
-      const incomeRows = state.incomes.map(x => ({ ...x, monthly: monthlyEquivalent(x.amount, x.frequency) }));
-      const expenseRows = state.items.map(x => ({ ...x, monthly: monthlyEquivalent(x.amount, x.frequency) }));
-      const bucketRows = state.buckets.map(x => ({ ...x, monthlyContribution: monthlyEquivalent(x.contributionAmount, x.contributionFrequency) }));
-      const incomeMonthly = sum(incomeRows.map(x => x.monthly));
-      const totals = {
-        required: sum(expenseRows.filter(i => i.type === 'required').map(i => i.monthly)),
-        essential: sum(expenseRows.filter(i => i.type === 'essential').map(i => i.monthly)),
-        sinking: sum(expenseRows.filter(i => i.type === 'sinking').map(i => i.monthly)),
-        wealth: sum(expenseRows.filter(i => i.type === 'wealth').map(i => i.monthly)),
-        lifestyle: sum(expenseRows.filter(i => i.type === 'lifestyle').map(i => i.monthly))
-      };
-      totals.bucketContributions = sum(bucketRows.map(b => b.monthlyContribution));
-      totals.expensesWithoutBuckets = totals.required + totals.essential + totals.sinking + totals.wealth + totals.lifestyle;
-      totals.totalOutflow = totals.expensesWithoutBuckets + totals.bucketContributions;
-      const freeCash = incomeMonthly - totals.totalOutflow;
-      const protectedTotal = sum(expenseRows.filter(i => i.protected).map(i => i.monthly));
-      const minDebt = sum(expenseRows.filter(i => /loan|debt|min/i.test(i.name) && i.type === 'required').map(i => i.monthly));
-      const extraDebt = sum(expenseRows.filter(i => /loan|debt/i.test(i.name) && i.type === 'wealth').map(i => i.monthly));
-      const selectedScenario = state.scenarios.find(s => s.id === state.selectedForecastScenarioId) || null;
-      const scenarioBaseMonthly = selectedScenario ? (selectedScenario.monthlyDelta + selectedScenario.monthlyInsuranceDelta + selectedScenario.monthlyFuelDelta) : 0;
-      const scenarioTotalCost = selectedScenario ? scenarioTotal(selectedScenario) : 0;
-      const scenarioMonthlyDrag = selectedScenario ? scenarioTotalCost / state.forecastMonths : 0;
-      const postScenarioFreeCash = freeCash - scenarioMonthlyDrag;
-      const bucketForecast = forecastBuckets(bucketRows, postScenarioFreeCash);
-
-      return {
-        incomeRows, expenseRows, bucketRows, incomeMonthly, totals, freeCash, protectedTotal,
-        minDebt, extraDebt, selectedScenario, scenarioBaseMonthly, scenarioTotalCost,
-        scenarioMonthlyDrag, postScenarioFreeCash, bucketForecast
-      };
-    }
-
-    function renderOverview(c) {
-      document.getElementById('topStats').innerHTML = [
-        ['Monthly income', money(c.incomeMonthly)],
-        ['Monthly outflow', money(c.totals.totalOutflow)],
-        ['Visible free cash', money(c.freeCash), c.freeCash >= 0 ? 'good' : 'danger-text'],
-        ['After selected scenario', money(c.postScenarioFreeCash), c.postScenarioFreeCash >= 0 ? 'good' : 'danger-text']
-      ].map(([label, value, cls='']) => `
-        <div class="stat"><div class="label">${label}</div><div class="value ${cls}">${value}</div></div>
-      `).join('');
-
-      document.getElementById('headlineMessage').className = 'callout' + (c.postScenarioFreeCash < 0 ? ' danger' : c.postScenarioFreeCash < c.incomeMonthly * 0.08 ? ' warn' : '');
-      document.getElementById('headlineMessage').innerHTML = overviewMessage(c);
-
-      document.getElementById('healthCards').innerHTML = buildHealthCards(c).map(card => `
-        <div class="stat"><div class="label">${card.label}</div><div class="value ${card.className || ''}" style="font-size:1.25rem;">${card.value}</div><div class="small">${card.note}</div></div>
-      `).join('');
-
-      document.getElementById('breakdownStats').innerHTML = [
-        ['Required', money(c.totals.required)],
-        ['Essentials', money(c.totals.essential)],
-        ['Buckets', money(c.totals.bucketContributions)],
-        ['Wealth-building', money(c.totals.wealth)],
-        ['Lifestyle', money(c.totals.lifestyle)],
-        ['Sinking funds', money(c.totals.sinking)]
-      ].map(([label, value]) => `<div class="stat"><div class="label">${label}</div><div class="value" style="font-size:1.15rem;">${value}</div></div>`).join('');
-
-      setBar('needsBar', pct((c.totals.required + c.totals.essential) / c.incomeMonthly));
-      setBar('futureBar', pct((c.totals.sinking + c.totals.wealth + c.totals.bucketContributions) / c.incomeMonthly));
-      setBar('lifestyleBar', pct(c.totals.lifestyle / c.incomeMonthly));
-
-      document.getElementById('weaknessList').innerHTML = buildWeaknesses(c);
-      document.getElementById('decisionStats').innerHTML = buildDecisionStats(c);
-      document.getElementById('decisionMessage').className = 'callout ' + (c.selectedScenario && c.postScenarioFreeCash < 0 ? 'danger' : 'warn');
-      document.getElementById('decisionMessage').innerHTML = decisionMessage(c);
-
-      upsertChart('cashFlowChart', 'bar', {
-        labels: ['Income', 'Expenses', 'Bucket contribs', 'Free cash', 'After scenario'],
-        datasets: [{
-          label: 'Monthly amount',
-          data: [c.incomeMonthly, c.totals.expensesWithoutBuckets, c.totals.bucketContributions, c.freeCash, c.postScenarioFreeCash]
-        }]
-      }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } });
-    }
-
-    function renderIncomeSection(c) {
-      document.getElementById('incomeStats').innerHTML = [
-        ['Total monthly income', money(c.incomeMonthly)],
-        ['Biweekly-derived income', money(sum(c.incomeRows.filter(x => x.frequency === 'biweekly').map(x => x.monthly)))],
-        ['Other income', money(sum(c.incomeRows.filter(x => x.frequency !== 'biweekly').map(x => x.monthly)))],
-        ['Annualized income', money(c.incomeMonthly * 12)]
-      ].map(([label, value]) => `<div class="stat"><div class="label">${label}</div><div class="value" style="font-size:1.15rem;">${value}</div></div>`).join('');
-
-      upsertChart('incomeChart', 'doughnut', {
-        labels: c.incomeRows.map(x => x.name),
-        datasets: [{ data: c.incomeRows.map(x => round2(x.monthly)) }]
-      }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } });
-    }
-
-    function renderBudgetSection(c) {
-      document.getElementById('debtStats').innerHTML = [
-        ['Minimum debt', money(c.minDebt)],
-        ['Extra debt payoff', money(c.extraDebt)],
-        ['Protected baseline', money(c.protectedTotal)],
-        ['Emergency target', money(state.emergencyTarget)]
-      ].map(([label, value]) => `<div class="stat"><div class="label">${label}</div><div class="value" style="font-size:1.15rem;">${value}</div></div>`).join('');
-      document.getElementById('debtMessage').innerHTML = debtMessage(c);
-
-      upsertChart('expenseChart', 'doughnut', {
-        labels: ['Required', 'Essentials', 'Sinking', 'Wealth', 'Lifestyle', 'Bucket Contributions'],
-        datasets: [{ data: [c.totals.required, c.totals.essential, c.totals.sinking, c.totals.wealth, c.totals.lifestyle, c.totals.bucketContributions].map(round2) }]
-      }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } });
-    }
-
-    function renderBucketSection(c) {
-      const totalBucketBalance = sum(c.bucketRows.map(b => b.current));
-      const totalBucketContribution = sum(c.bucketRows.map(b => b.monthlyContribution));
-      const fundedBuckets = c.bucketRows.filter(b => b.target > 0 && b.current >= b.target).length;
-      document.getElementById('bucketStats').innerHTML = [
-        ['Total bucket balance', money(totalBucketBalance)],
-        ['Monthly bucket contributions', money(totalBucketContribution)],
-        ['Buckets at target', `${fundedBuckets}/${c.bucketRows.length}`],
-        ['Months to e-fund target*', totalBucketContribution > 0 ? `${Math.max(0, (state.emergencyTarget - findEmergencyBalance(c.bucketRows)) / totalBucketContribution).toFixed(1)}` : 'n/a']
-      ].map(([label, value]) => `<div class="stat"><div class="label">${label}</div><div class="value" style="font-size:1.1rem;">${value}</div></div>`).join('');
-
-      document.getElementById('bucketCallout').innerHTML = bucketMessage(c);
-      upsertChart('bucketChart', 'bar', {
-        labels: c.bucketRows.map(b => b.name),
-        datasets: [
-          { label: 'Current balance', data: c.bucketRows.map(b => round2(b.current)) },
-          { label: 'Target', data: c.bucketRows.map(b => round2(b.target)) }
-        ]
-      }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } });
-    }
-
-    function renderScenarioSection(c) {
-      if (!state.scenarios.length) {
-        document.getElementById('scenarioSummary').innerHTML = '<div class="callout warn">Add at least one scenario to compare options.</div>';
-        upsertChart('scenarioChart', 'bar', { labels: ['No scenarios'], datasets: [{ data: [0] }] }, { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } });
-        return;
-      }
-      const ranked = state.scenarios.map(s => {
-        const total = scenarioTotal(s);
-        return {
-          ...s,
-          total,
-          monthlyDrag: total / state.forecastMonths,
-          postFreeCash: c.freeCash - (total / state.forecastMonths),
-          score: scenarioScore(c.freeCash, s)
-        };
-      }).sort((a,b) => a.total - b.total);
-
-      const best = ranked[0];
-      document.getElementById('scenarioSummary').innerHTML = `
-        <div class="callout ${best.postFreeCash < 0 ? 'danger' : 'warn'}"><strong>${escapeHtml(best.name)}</strong> is the lowest total-cost scenario over ${state.forecastMonths} months at <strong>${money(best.total)}</strong>. But the best family choice may still be different if convenience is worth the extra drag.</div>
-        <div class="mini-grid">
-          ${ranked.map((s, i) => `
-            <div class="stat">
-              <div class="label">${i === 0 ? 'Cheapest total cost' : 'Scenario'}</div>
-              <div class="value" style="font-size:1.1rem;">${escapeHtml(s.name)}</div>
-              <div class="small">Monthly drag: ${money(s.monthlyDrag)}<br>Free cash after choice: <span class="${s.postFreeCash >= 0 ? 'good' : 'danger-text'}">${money(s.postFreeCash)}</span><br>Decision score: ${s.score}/100</div>
-            </div>
-          `).join('')}
         </div>
-      `;
+        <div class="stat-grid" id="topStats"></div>
+        <div class="callout" id="headlineMessage" style="margin-top:14px"></div>
+      </div>
+      <div class="panel span-8">
+        <h2>What looks weak</h2>
+        <div class="stack" id="weaknessList"></div>
+      </div>
+      <div class="panel span-4">
+        <h2>Scenario snapshot</h2>
+        <div class="stack" id="scenarioSummary"></div>
+      </div>
+      <div class="panel span-6">
+        <h2>Income vs spending</h2>
+        <div class="chart-box"><canvas id="cashflowChart"></canvas></div>
+      </div>
+      <div class="panel span-6">
+        <h2>Spending mix</h2>
+        <div class="chart-box"><canvas id="expenseMixChart"></canvas></div>
+      </div>
+    </div>
+  </section>
 
-      upsertChart('scenarioChart', 'bar', {
-        labels: ranked.map(s => s.name),
-        datasets: [
-          { label: 'Horizon cost', data: ranked.map(s => round2(s.total)) },
-          { label: 'Free cash after choice', data: ranked.map(s => round2(s.postFreeCash)) }
-        ]
-      }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } });
+  <section class="page" id="page-income">
+    <div class="grid">
+      <div class="panel span-12">
+        <div class="section-title">
+          <h2>Income streams</h2>
+          <div class="row-actions">
+            <label class="label">Emergency target <input id="emergencyTargetInput" type="number" step="0.01" value="10000"></label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Frequency</th><th>Amount</th><th>Monthly equivalent</th><th>Notes</th><th>Delete</th></tr></thead>
+            <tbody id="incomeBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel span-6">
+        <h2>Income stats</h2>
+        <div class="stat-grid" id="incomeStats"></div>
+      </div>
+      <div class="panel span-6">
+        <h2>Income mix</h2>
+        <div class="chart-box"><canvas id="incomeMixChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="page-budget">
+    <div class="grid">
+      <div class="panel span-12">
+        <h2>Budget items</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Type</th><th>Frequency</th><th>Amount</th><th>Monthly equivalent</th><th>Protected</th><th>Notes</th><th>Delete</th></tr></thead>
+            <tbody id="itemsBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel span-6">
+        <h2>Budget breakdown</h2>
+        <div class="stat-grid" id="budgetStats"></div>
+        <div class="callout" id="debtMessage" style="margin-top:14px"></div>
+      </div>
+      <div class="panel span-6">
+        <h2>Category totals</h2>
+        <div class="chart-box"><canvas id="categoryBarChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="page-buckets">
+    <div class="grid">
+      <div class="panel span-12">
+        <div class="section-title">
+          <h2>Savings buckets</h2>
+          <div class="row-actions">
+            <label class="label">Annual return % <input id="bucketReturnInput" type="number" step="0.01" value="0"></label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Current</th><th>Contribution frequency</th><th>Contribution amount</th><th>Monthly equivalent</th><th>Target</th><th>Priority 1-10</th><th>Notes</th><th>Delete</th></tr></thead>
+            <tbody id="bucketBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel span-6">
+        <h2>Bucket stats</h2>
+        <div class="stat-grid" id="bucketStats"></div>
+        <div class="callout" id="bucketCallout" style="margin-top:14px"></div>
+      </div>
+      <div class="panel span-6">
+        <h2>Bucket balances</h2>
+        <div class="chart-box"><canvas id="bucketChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="page-scenarios">
+    <div class="grid">
+      <div class="panel span-12">
+        <div class="section-title">
+          <h2>Decision scenarios</h2>
+          <div class="row-actions">
+            <label class="label">Decision horizon (months) <input id="forecastMonthsInput" type="number" min="1" step="1" value="24"></label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Monthly payment delta</th><th>Insurance delta</th><th>Fuel / charging delta</th><th>One-time setup</th><th>Rental total in horizon</th><th>Horizon total</th><th>Monthly drag</th><th>Delete</th></tr></thead>
+            <tbody id="scenarioBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel span-6">
+        <h2>Scenario comparison</h2>
+        <div class="chart-box"><canvas id="scenarioChart"></canvas></div>
+      </div>
+      <div class="panel span-6">
+        <h2>Decision read</h2>
+        <div class="callout" id="decisionMessage"></div>
+        <div class="stat-grid" id="decisionStats" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="page-forecast">
+    <div class="grid">
+      <div class="panel span-12">
+        <div class="section-title">
+          <h2>Forecast</h2>
+          <div class="row-actions">
+            <label class="label">Scenario <select id="forecastScenarioSelect"></select></label>
+            <label class="label">Allocate surplus to buckets
+              <select id="allocateSurplusSelect">
+                <option value="no">No</option>
+                <option value="yes">Yes, by priority</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="stat-grid" id="forecastStats"></div>
+        <div class="callout" id="forecastMessage" style="margin-top:14px"></div>
+      </div>
+      <div class="panel span-6">
+        <h2>Forecast growth</h2>
+        <div class="chart-box"><canvas id="forecastChart"></canvas></div>
+      </div>
+      <div class="panel span-6">
+        <h2>Ending bucket balances</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Bucket</th><th>Start</th><th>End</th><th>Target</th></tr></thead>
+            <tbody id="forecastBucketTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const STORAGE_KEY = 'budget-decision-dashboard-v3';
+const charts = {};
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
+function toNum(v){ const n = parseFloat(v); return Number.isFinite(n) ? n : 0; }
+function money(v){ return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v||0); }
+function pct(v){ return Math.round((v||0)*100); }
+function escapeHtml(str){ return String(str ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+function monthlyEquivalent(amount, frequency){
+  switch(frequency){
+    case 'weekly': return amount*52/12;
+    case 'biweekly': return amount*26/12;
+    case 'monthly': return amount;
+    case 'quarterly': return amount/3;
+    case 'semiannual': return amount/6;
+    case 'annual': return amount/12;
+    case 'one-time': return 0;
+    default: return amount;
+  }
+}
+function scenarioTotal(s, months){
+  const monthlyEffects = toNum(s.monthlyDelta)+toNum(s.monthlyInsuranceDelta)+toNum(s.monthlyFuelDelta);
+  return monthlyEffects * months + toNum(s.oneTime) + toNum(s.rentals);
+}
+const sampleData = {
+  emergencyTarget: 10000,
+  forecastMonths: 24,
+  bucketReturn: 0,
+  allocateSurplus: 'no',
+  selectedForecastScenarioId: '',
+  incomes: [
+    {id:uid(), name:'My biweekly pay', frequency:'biweekly', amount:3147.31, notes:''},
+    {id:uid(), name:"Wife's biweekly pay", frequency:'biweekly', amount:3210, notes:''},
+    {id:uid(), name:"Wife's biweekly child support", frequency:'biweekly', amount:0, notes:''},
+    {id:uid(), name:"Extra stipends", frequency:'monthly', amount:0, notes:'Adjunct / coaching / extras'}
+  ],
+  items: [
+    {id:uid(), name:'Mortgage', type:'required', frequency:'monthly', amount:1480, protected:true, notes:''},
+    {id:uid(), name:'Cell phones', type:'essential', frequency:'monthly', amount:150, protected:true, notes:''},
+    {id:uid(), name:'Internet', type:'essential', frequency:'monthly', amount:110, protected:true, notes:''},
+    {id:uid(), name:'Electric', type:'essential', frequency:'monthly', amount:75, protected:true, notes:''},
+    {id:uid(), name:'Gas utility', type:'essential', frequency:'monthly', amount:70, protected:true, notes:''},
+    {id:uid(), name:'Groceries', type:'essential', frequency:'monthly', amount:1500, protected:true, notes:''},
+    {id:uid(), name:'Personal loan minimum', type:'required', frequency:'monthly', amount:905, protected:true, notes:'Minimum only'},
+    {id:uid(), name:'Extra personal loan payoff', type:'wealth', frequency:'monthly', amount:45, protected:false, notes:'Extra principal'},
+    {id:uid(), name:'Annual car insurance', type:'sinking', frequency:'annual', amount:1300, protected:true, notes:'Pulled from savings historically'},
+    {id:uid(), name:'Gas / charging', type:'essential', frequency:'monthly', amount:250, protected:true, notes:''},
+    {id:uid(), name:'Going out', type:'lifestyle', frequency:'monthly', amount:250, protected:false, notes:''},
+    {id:uid(), name:'Alcohol', type:'lifestyle', frequency:'monthly', amount:100, protected:false, notes:''}
+  ],
+  buckets: [
+    {id:uid(), name:'Emergency fund', current:3500, contributionFrequency:'weekly', contributionAmount:100, target:15000, priority:10, notes:''},
+    {id:uid(), name:'Vacation fund', current:2000, contributionFrequency:'weekly', contributionAmount:75, target:6000, priority:7, notes:''},
+    {id:uid(), name:'Kids / future', current:9000, contributionFrequency:'weekly', contributionAmount:100, target:12000, priority:5, notes:''},
+    {id:uid(), name:'Tech / misc.', current:1000, contributionFrequency:'weekly', contributionAmount:50, target:2500, priority:3, notes:''}
+  ],
+  scenarios: [
+    {id:uid(), name:'Keep Traverse + new $798 lease', monthlyDelta:798, monthlyInsuranceDelta:0, monthlyFuelDelta:0, oneTime:0, rentals:0},
+    {id:uid(), name:'Replace Traverse + new $710 payment', monthlyDelta:243, monthlyInsuranceDelta:0, monthlyFuelDelta:-40, oneTime:0, rentals:0},
+    {id:uid(), name:'Replace Traverse + 3 rentals + Tesla setup', monthlyDelta:243, monthlyInsuranceDelta:0, monthlyFuelDelta:-40, oneTime:2200, rentals:4020}
+  ]
+};
+sampleData.selectedForecastScenarioId = sampleData.scenarios[0].id;
+
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return structuredClone(sampleData);
+  try{
+    const parsed = JSON.parse(raw);
+    return {
+      emergencyTarget: parsed.emergencyTarget ?? sampleData.emergencyTarget,
+      forecastMonths: parsed.forecastMonths ?? sampleData.forecastMonths,
+      bucketReturn: parsed.bucketReturn ?? sampleData.bucketReturn,
+      allocateSurplus: parsed.allocateSurplus ?? sampleData.allocateSurplus,
+      selectedForecastScenarioId: parsed.selectedForecastScenarioId ?? sampleData.selectedForecastScenarioId,
+      incomes: Array.isArray(parsed.incomes) ? parsed.incomes : structuredClone(sampleData.incomes),
+      items: Array.isArray(parsed.items) ? parsed.items : structuredClone(sampleData.items),
+      buckets: Array.isArray(parsed.buckets) ? parsed.buckets : structuredClone(sampleData.buckets),
+      scenarios: Array.isArray(parsed.scenarios) ? parsed.scenarios : structuredClone(sampleData.scenarios)
+    };
+  }catch{
+    return structuredClone(sampleData);
+  }
+}
+let state = loadState();
+let refreshTimer = null;
+
+const refs = {
+  emergencyTargetInput: document.getElementById('emergencyTargetInput'),
+  forecastMonthsInput: document.getElementById('forecastMonthsInput'),
+  bucketReturnInput: document.getElementById('bucketReturnInput'),
+  allocateSurplusSelect: document.getElementById('allocateSurplusSelect'),
+  forecastScenarioSelect: document.getElementById('forecastScenarioSelect'),
+  incomeBody: document.getElementById('incomeBody'),
+  itemsBody: document.getElementById('itemsBody'),
+  bucketBody: document.getElementById('bucketBody'),
+  scenarioBody: document.getElementById('scenarioBody')
+};
+
+document.getElementById('addIncomeBtn').addEventListener('click', ()=>{ state.incomes.push({id:uid(),name:'New income',frequency:'biweekly',amount:0,notes:''}); renderTables(); renderAllOutputs(); });
+document.getElementById('addItemBtn').addEventListener('click', ()=>{ state.items.push({id:uid(),name:'New item',type:'essential',frequency:'monthly',amount:0,protected:false,notes:''}); renderTables(); renderAllOutputs(); });
+document.getElementById('addBucketBtn').addEventListener('click', ()=>{ state.buckets.push({id:uid(),name:'New bucket',current:0,contributionFrequency:'weekly',contributionAmount:0,target:0,priority:5,notes:''}); renderTables(); renderAllOutputs(); });
+document.getElementById('addScenarioBtn').addEventListener('click', ()=>{ state.scenarios.push({id:uid(),name:'New scenario',monthlyDelta:0,monthlyInsuranceDelta:0,monthlyFuelDelta:0,oneTime:0,rentals:0}); renderTables(); renderAllOutputs(); });
+document.getElementById('resetBtn').addEventListener('click', ()=>{ if(confirm('Reset back to sample data?')){ state = structuredClone(sampleData); renderAll(true);} });
+document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('importFile').addEventListener('change', importData);
+
+refs.emergencyTargetInput.addEventListener('input', ()=>{ state.emergencyTarget = toNum(refs.emergencyTargetInput.value); queueOutputRefresh(); });
+refs.forecastMonthsInput.addEventListener('input', ()=>{ state.forecastMonths = Math.max(1, parseInt(refs.forecastMonthsInput.value || '1', 10)); updateAllScenarioComputedCells(); queueOutputRefresh(); });
+refs.bucketReturnInput.addEventListener('input', ()=>{ state.bucketReturn = toNum(refs.bucketReturnInput.value); queueOutputRefresh(); });
+refs.allocateSurplusSelect.addEventListener('change', ()=>{ state.allocateSurplus = refs.allocateSurplusSelect.value; renderAllOutputs(); });
+refs.forecastScenarioSelect.addEventListener('change', ()=>{ state.selectedForecastScenarioId = refs.forecastScenarioSelect.value; renderAllOutputs(); });
+
+document.querySelectorAll('[data-page]').forEach(btn=>btn.addEventListener('click', ()=>switchPage(btn.dataset.page)));
+
+attachTableDelegation(refs.incomeBody, 'income');
+attachTableDelegation(refs.itemsBody, 'item');
+attachTableDelegation(refs.bucketBody, 'bucket');
+attachTableDelegation(refs.scenarioBody, 'scenario');
+
+function attachTableDelegation(root, kind){
+  root.addEventListener('input', e => handleTableEvent(e, kind));
+  root.addEventListener('change', e => handleTableEvent(e, kind));
+  root.addEventListener('click', e => {
+    const btn = e.target.closest('[data-delete]');
+    if(!btn) return;
+    const id = btn.dataset.delete;
+    if(kind === 'income') state.incomes = state.incomes.filter(x=>x.id!==id);
+    if(kind === 'item') state.items = state.items.filter(x=>x.id!==id);
+    if(kind === 'bucket') state.buckets = state.buckets.filter(x=>x.id!==id);
+    if(kind === 'scenario'){
+      state.scenarios = state.scenarios.filter(x=>x.id!==id);
+      if(state.selectedForecastScenarioId === id) state.selectedForecastScenarioId = state.scenarios[0]?.id || '';
     }
+    renderTables();
+    renderAllOutputs();
+  });
+}
 
-    function renderForecastSection(c) {
-      const f = c.bucketForecast;
-      document.getElementById('forecastStats').innerHTML = [
-        ['Forecast starting free cash', money(c.freeCash)],
-        ['Scenario-adjusted free cash', money(c.postScenarioFreeCash), c.postScenarioFreeCash >= 0 ? 'good' : 'danger-text'],
-        ['Projected total buckets', money(f.totalEndingBalance)],
-        ['Total surplus kept outside buckets', money(f.unallocatedSurplus)]
-      ].map(([label, value, cls='']) => `<div class="stat"><div class="label">${label}</div><div class="value ${cls}" style="font-size:1.15rem;">${value}</div></div>`).join('');
-      document.getElementById('forecastMessage').className = 'callout' + (c.postScenarioFreeCash < 0 ? ' danger' : state.allocateSurplus === 'yes' ? '' : ' warn');
-      document.getElementById('forecastMessage').innerHTML = forecastMessage(c, f);
+function handleTableEvent(e, kind){
+  const el = e.target;
+  const id = el.dataset.id;
+  const field = el.dataset.field;
+  if(!id || !field) return;
 
-      upsertChart('forecastChart', 'line', {
-        labels: f.timeline.labels,
-        datasets: [
-          { label: 'Total bucket balances', data: f.timeline.totalBalances.map(round2), tension: 0.25 },
-          { label: 'Unallocated surplus cash', data: f.timeline.surplusPool.map(round2), tension: 0.25 },
-          { label: 'Emergency bucket', data: f.timeline.emergency.map(round2), tension: 0.25 }
-        ]
-      }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } });
+  const map = {income:'incomes', item:'items', bucket:'buckets', scenario:'scenarios'};
+  const row = state[map[kind]].find(x=>x.id===id);
+  if(!row) return;
 
-      document.getElementById('forecastBucketTable').innerHTML = f.bucketResults.map(row => `
-        <tr>
-          <td>${escapeHtml(row.name)}</td>
-          <td class="number">${money(row.start)}</td>
-          <td class="number">${money(row.end)}</td>
-          <td class="number">${money(row.target)}</td>
-          <td>${row.target > 0 ? (row.end >= row.target ? '<span class="good">At / above target</span>' : '<span class="warn-text">Below target</span>') : '<span class="small">No target</span>'}</td>
-        </tr>
-      `).join('');
-    }
+  const numericFields = ['amount','current','contributionAmount','target','priority','monthlyDelta','monthlyInsuranceDelta','monthlyFuelDelta','oneTime','rentals'];
+  if(field === 'protected') row[field] = el.checked;
+  else if(numericFields.includes(field)) row[field] = toNum(el.value);
+  else row[field] = el.value;
 
-    function buildHealthCards(c) {
-      const freePct = c.incomeMonthly ? c.postScenarioFreeCash / c.incomeMonthly : 0;
-      const protectedPct = c.incomeMonthly ? c.protectedTotal / c.incomeMonthly : 0;
-      const futurePct = c.incomeMonthly ? (c.totals.sinking + c.totals.wealth + c.totals.bucketContributions) / c.incomeMonthly : 0;
-      const lifePct = c.incomeMonthly ? c.totals.lifestyle / c.incomeMonthly : 0;
-      return [
-        { label: 'Free-cash ratio', value: `${pct(freePct)}%`, className: freePct >= 0.15 ? 'good' : freePct >= 0.05 ? 'warn-text' : 'danger-text', note: freePct >= 0.15 ? 'Strong cushion' : freePct >= 0.05 ? 'Workable but tighter' : 'Thin after choice' },
-        { label: 'Protected spending', value: `${pct(protectedPct)}%`, className: protectedPct <= 0.65 ? 'good' : protectedPct <= 0.80 ? 'warn-text' : 'danger-text', note: 'Already spoken for' },
-        { label: 'Future funding', value: `${pct(futurePct)}%`, className: futurePct >= 0.20 ? 'good' : futurePct >= 0.10 ? 'warn-text' : 'danger-text', note: 'Buckets + wealth' },
-        { label: 'Lifestyle load', value: `${pct(lifePct)}%`, className: lifePct <= 0.08 ? 'good' : lifePct <= 0.15 ? 'warn-text' : 'danger-text', note: 'Flex zone' }
-      ];
-    }
+  if(kind === 'scenario' && !state.selectedForecastScenarioId) state.selectedForecastScenarioId = id;
 
-    function buildWeaknesses(c) {
-      const issues = [];
-      const hasInsurance = c.expenseRows.some(i => /insurance/i.test(i.name));
-      const hasFuel = c.expenseRows.some(i => /gas|fuel|charging|electric vehicle/i.test(i.name));
-      const hasMaintenance = c.expenseRows.some(i => /repair|maintenance|tires/i.test(i.name));
-      const hasTravel = c.expenseRows.some(i => /travel|trip|vacation|rental/i.test(i.name)) || state.scenarios.some(s => s.rentals > 0);
-      if (c.freeCash < 0) issues.push(['danger', 'Your base monthly plan is negative before any scenario.']);
-      if (c.postScenarioFreeCash < 0) issues.push(['danger', 'The selected scenario pushes the budget negative over the chosen horizon.']);
-      if ((c.totals.required + c.totals.essential) > c.incomeMonthly * 0.75) issues.push(['warn', 'Required + essential costs are already taking most of your income.']);
-      if (c.totals.lifestyle > c.incomeMonthly * 0.12) issues.push(['warn', 'Lifestyle spending is high enough to be a meaningful lever.']);
-      if (!hasInsurance) issues.push(['danger', 'No insurance line found. Annual bills still belong in the budget math.']);
-      if (!hasFuel) issues.push(['warn', 'No fuel / charging line found.']);
-      if (!hasMaintenance) issues.push(['warn', 'No repair / maintenance sinking line found.']);
-      if (!hasTravel) issues.push(['warn', 'No travel or rental planning is visible.']);
-      if (!state.buckets.length) issues.push(['warn', 'No savings buckets are being tracked, so annual planning is blurry.']);
-      if (!issues.length) return '<div class="callout">No major structural weakness jumped out. That does not mean every choice is smart. It means the dashboard has enough visibility to test honestly.</div>';
-      return issues.map(([level, text]) => `<div class="callout ${level === 'danger' ? 'danger' : 'warn'}">${text}</div>`).join('');
-    }
+  updateComputedCellsForRow(kind, id);
+  if(e.type === 'input'){
+    queueOutputRefresh();
+  }else{
+    renderAllOutputs();
+  }
+}
 
-    function buildDecisionStats(c) {
-      const ranked = state.scenarios.length ? state.scenarios.map(s => ({ s, score: scenarioScore(c.freeCash, s), total: scenarioTotal(s) })).sort((a,b) => b.score - a.score) : [];
-      const bestScore = ranked[0];
-      const cheapest = [...ranked].sort((a,b) => a.total - b.total)[0];
-      return [
-        statHtml('Best score', bestScore ? `${bestScore.score}/100` : 'n/a'),
-        statHtml('Best-scoring scenario', bestScore ? escapeHtml(bestScore.s.name) : 'n/a', true),
-        statHtml('Cheapest scenario', cheapest ? escapeHtml(cheapest.s.name) : 'n/a', true),
-        statHtml('2-year decision lens', state.forecastMonths >= 24 ? `${state.forecastMonths} mo` : `${state.forecastMonths} mo`, false)
-      ].join('');
-    }
+function renderAll(initial=false){
+  refs.emergencyTargetInput.value = state.emergencyTarget;
+  refs.forecastMonthsInput.value = state.forecastMonths;
+  refs.bucketReturnInput.value = state.bucketReturn;
+  refs.allocateSurplusSelect.value = state.allocateSurplus;
+  renderTables();
+  renderAllOutputs(initial);
+}
 
-    function scenarioScore(baseFreeCash, s) {
-      const drag = scenarioTotal(s) / state.forecastMonths;
-      const after = baseFreeCash - drag;
-      let score = 100;
-      if (after < 0) score -= 45;
-      else if (after < 500) score -= 25;
-      else if (after < 1000) score -= 12;
-      if (s.oneTime > 3000) score -= 10;
-      if (s.rentals > 3000) score -= 8;
-      if (drag > baseFreeCash * 0.5) score -= 18;
-      return Math.max(0, Math.round(score));
-    }
+function renderTables(){
+  renderIncomeTable();
+  renderItemsTable();
+  renderBucketTable();
+  renderScenarioTable();
+}
+function renderIncomeTable(){
+  refs.incomeBody.innerHTML = state.incomes.map(r => `
+    <tr>
+      <td><input type="text" value="${escapeHtml(r.name)}" data-id="${r.id}" data-field="name"></td>
+      <td>${selectHtml(r.id,'frequency',r.frequency,[['weekly','Weekly'],['biweekly','Biweekly'],['monthly','Monthly'],['quarterly','Quarterly'],['annual','Annual'],['one-time','One-time / irregular']])}</td>
+      <td><input type="number" step="0.01" class="number" value="${r.amount}" data-id="${r.id}" data-field="amount"></td>
+      <td class="number" data-derived="monthly" data-kind="income" data-id="${r.id}">${money(monthlyEquivalent(r.amount,r.frequency))}</td>
+      <td><input type="text" value="${escapeHtml(r.notes)}" data-id="${r.id}" data-field="notes"></td>
+      <td><button data-delete="${r.id}">✕</button></td>
+    </tr>
+  `).join('');
+}
+function renderItemsTable(){
+  refs.itemsBody.innerHTML = state.items.map(r => `
+    <tr>
+      <td><input type="text" value="${escapeHtml(r.name)}" data-id="${r.id}" data-field="name"></td>
+      <td>${selectHtml(r.id,'type',r.type,[['required','Required'],['essential','Essential'],['sinking','Sinking fund'],['wealth','Wealth-building'],['lifestyle','Lifestyle']])}</td>
+      <td>${selectHtml(r.id,'frequency',r.frequency,[['monthly','Monthly'],['quarterly','Quarterly'],['semiannual','Twice per year'],['annual','Annual'],['one-time','One-time / ignore monthly']])}</td>
+      <td><input type="number" step="0.01" class="number" value="${r.amount}" data-id="${r.id}" data-field="amount"></td>
+      <td class="number" data-derived="monthly" data-kind="item" data-id="${r.id}">${money(monthlyEquivalent(r.amount,r.frequency))}</td>
+      <td style="text-align:center"><input type="checkbox" ${r.protected ? 'checked' : ''} data-id="${r.id}" data-field="protected"></td>
+      <td><input type="text" value="${escapeHtml(r.notes)}" data-id="${r.id}" data-field="notes"></td>
+      <td><button data-delete="${r.id}">✕</button></td>
+    </tr>
+  `).join('');
+}
+function renderBucketTable(){
+  refs.bucketBody.innerHTML = state.buckets.map(r => `
+    <tr>
+      <td><input type="text" value="${escapeHtml(r.name)}" data-id="${r.id}" data-field="name"></td>
+      <td><input type="number" step="0.01" class="number" value="${r.current}" data-id="${r.id}" data-field="current"></td>
+      <td>${selectHtml(r.id,'contributionFrequency',r.contributionFrequency,[['weekly','Weekly'],['biweekly','Biweekly'],['monthly','Monthly'],['quarterly','Quarterly'],['annual','Annual']])}</td>
+      <td><input type="number" step="0.01" class="number" value="${r.contributionAmount}" data-id="${r.id}" data-field="contributionAmount"></td>
+      <td class="number" data-derived="monthly" data-kind="bucket" data-id="${r.id}">${money(monthlyEquivalent(r.contributionAmount,r.contributionFrequency))}</td>
+      <td><input type="number" step="0.01" class="number" value="${r.target}" data-id="${r.id}" data-field="target"></td>
+      <td><input type="number" min="1" max="10" step="1" class="number" value="${r.priority}" data-id="${r.id}" data-field="priority"></td>
+      <td><input type="text" value="${escapeHtml(r.notes)}" data-id="${r.id}" data-field="notes"></td>
+      <td><button data-delete="${r.id}">✕</button></td>
+    </tr>
+  `).join('');
+}
+function renderScenarioTable(){
+  refs.scenarioBody.innerHTML = state.scenarios.map(r => {
+    const total = scenarioTotal(r, state.forecastMonths);
+    const monthlyDrag = total / Math.max(1, state.forecastMonths);
+    return `
+      <tr>
+        <td><input type="text" value="${escapeHtml(r.name)}" data-id="${r.id}" data-field="name"></td>
+        <td><input type="number" step="0.01" class="number" value="${r.monthlyDelta}" data-id="${r.id}" data-field="monthlyDelta"></td>
+        <td><input type="number" step="0.01" class="number" value="${r.monthlyInsuranceDelta}" data-id="${r.id}" data-field="monthlyInsuranceDelta"></td>
+        <td><input type="number" step="0.01" class="number" value="${r.monthlyFuelDelta}" data-id="${r.id}" data-field="monthlyFuelDelta"></td>
+        <td><input type="number" step="0.01" class="number" value="${r.oneTime}" data-id="${r.id}" data-field="oneTime"></td>
+        <td><input type="number" step="0.01" class="number" value="${r.rentals}" data-id="${r.id}" data-field="rentals"></td>
+        <td class="number" data-derived="scenario-total" data-kind="scenario" data-id="${r.id}">${money(total)}</td>
+        <td class="number" data-derived="scenario-monthly" data-kind="scenario" data-id="${r.id}">${money(monthlyDrag)}</td>
+        <td><button data-delete="${r.id}">✕</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+function selectHtml(id, field, current, options){
+  return `<select data-id="${id}" data-field="${field}">${options.map(([v,l]) => `<option value="${v}" ${current===v?'selected':''}>${l}</option>`).join('')}</select>`;
+}
+function updateComputedCellsForRow(kind, id){
+  const map = {income:'incomes', item:'items', bucket:'buckets', scenario:'scenarios'};
+  const row = state[map[kind]].find(x=>x.id===id);
+  if(!row) return;
+  if(kind === 'income'){
+    const cell = document.querySelector(`[data-derived="monthly"][data-kind="income"][data-id="${id}"]`);
+    if(cell) cell.textContent = money(monthlyEquivalent(row.amount,row.frequency));
+    return;
+  }
+  if(kind === 'item'){
+    const cell = document.querySelector(`[data-derived="monthly"][data-kind="item"][data-id="${id}"]`);
+    if(cell) cell.textContent = money(monthlyEquivalent(row.amount,row.frequency));
+    return;
+  }
+  if(kind === 'bucket'){
+    const cell = document.querySelector(`[data-derived="monthly"][data-kind="bucket"][data-id="${id}"]`);
+    if(cell) cell.textContent = money(monthlyEquivalent(row.contributionAmount,row.contributionFrequency));
+    return;
+  }
+  if(kind === 'scenario'){
+    const totalCell = document.querySelector(`[data-derived="scenario-total"][data-kind="scenario"][data-id="${id}"]`);
+    const monthlyCell = document.querySelector(`[data-derived="scenario-monthly"][data-kind="scenario"][data-id="${id}"]`);
+    const total = scenarioTotal(row, state.forecastMonths);
+    if(totalCell) totalCell.textContent = money(total);
+    if(monthlyCell) monthlyCell.textContent = money(total / Math.max(1, state.forecastMonths));
+  }
+}
+function updateAllScenarioComputedCells(){
+  state.scenarios.forEach(s=>updateComputedCellsForRow('scenario', s.id));
+}
 
-    function statHtml(label, value, smaller = false) {
-      return `<div class="stat"><div class="label">${label}</div><div class="value" style="font-size:${smaller ? '1.05rem' : '1.15rem'};">${value}</div></div>`;
-    }
+function queueOutputRefresh(){
+  saveState();
+  if(refreshTimer) clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(renderAllOutputs, 60);
+}
 
-    function overviewMessage(c) {
-      if (c.postScenarioFreeCash < 0) return `The selected setup leaves you <strong>${money(Math.abs(c.postScenarioFreeCash))}</strong> short per month over ${state.forecastMonths} months. That is a warning, not a rounding error.`;
-      if (c.postScenarioFreeCash < c.incomeMonthly * 0.08) return `You still stay positive, but only with <strong>${money(c.postScenarioFreeCash)}</strong> of monthly room after the selected choice. This is workable, not relaxed.`;
-      return `After the selected choice, you still show <strong>${money(c.postScenarioFreeCash)}</strong> of monthly room. The next question is whether that room should go to faster debt payoff, stronger buckets, or a more comfortable vehicle setup.`;
-    }
+function computeModel(){
+  const incomes = state.incomes.map(r => ({...r, monthly: monthlyEquivalent(r.amount, r.frequency)}));
+  const items = state.items.map(r => ({...r, monthly: monthlyEquivalent(r.amount, r.frequency)}));
+  const buckets = state.buckets.map(r => ({...r, monthlyContribution: monthlyEquivalent(r.contributionAmount, r.contributionFrequency)}));
+  const incomeMonthly = sum(incomes.map(r=>r.monthly));
+  const categoryTotals = {
+    required: sum(items.filter(x=>x.type==='required').map(x=>x.monthly)),
+    essential: sum(items.filter(x=>x.type==='essential').map(x=>x.monthly)),
+    sinking: sum(items.filter(x=>x.type==='sinking').map(x=>x.monthly)),
+    wealth: sum(items.filter(x=>x.type==='wealth').map(x=>x.monthly)),
+    lifestyle: sum(items.filter(x=>x.type==='lifestyle').map(x=>x.monthly))
+  };
+  const bucketContributionMonthly = sum(buckets.map(b=>b.monthlyContribution));
+  const totalOutMonthly = sum(items.map(r=>r.monthly)) + bucketContributionMonthly;
+  const freeCashMonthly = incomeMonthly - totalOutMonthly;
 
-    function decisionMessage(c) {
-      if (!c.selectedScenario) return 'Pick a scenario in Forecast to see how the dashboard treats that choice across cash flow and bucket growth.';
-      if (c.postScenarioFreeCash < 0) return `Right now, <strong>${escapeHtml(c.selectedScenario.name)}</strong> looks too aggressive unless other categories are trimmed.`;
-      if (c.postScenarioFreeCash < 750) return `<strong>${escapeHtml(c.selectedScenario.name)}</strong> can work, but it is trimming your flexibility. Any surprise month will feel tighter.`;
-      return `<strong>${escapeHtml(c.selectedScenario.name)}</strong> fits the current structure reasonably well. That does not make it “best,” but it means the budget is not screaming no.`;
-    }
+  const selectedScenario = state.scenarios.find(s => s.id === state.selectedForecastScenarioId) || null;
+  const selectedScenarioMonthlyDrag = selectedScenario ? scenarioTotal(selectedScenario, state.forecastMonths) / Math.max(1, state.forecastMonths) : 0;
+  const postScenarioFreeCash = freeCashMonthly - selectedScenarioMonthlyDrag;
 
-    function debtMessage(c) {
-      if (c.minDebt === 0 && c.extraDebt === 0) return 'No debt lines are being tracked. That may be true, but most households benefit from keeping minimum debt and extra payoff separate.';
-      if (c.extraDebt > 0 && c.postScenarioFreeCash < c.extraDebt) return `Your extra debt payoff is <strong>${money(c.extraDebt)}</strong>, but the selected scenario leaves only <strong>${money(c.postScenarioFreeCash)}</strong> of room. That choice may quietly replace progress.`;
-      return 'Minimum debt and extra payoff are separated, which is exactly what you want when comparing big decisions.';
-    }
-
-    function bucketMessage(c) {
-      const eBalance = findEmergencyBalance(c.bucketRows);
-      if (eBalance >= state.emergencyTarget) return `Your emergency-oriented bucket already meets the current target of <strong>${money(state.emergencyTarget)}</strong>.`;
-      const monthlyEFund = c.bucketRows.filter(b => /emergency/i.test(b.name)).reduce((sum, b) => sum + b.monthlyContribution, 0);
-      if (monthlyEFund <= 0) return 'No monthly contribution is going to an emergency-style bucket right now.';
-      const months = Math.max(0, (state.emergencyTarget - eBalance) / monthlyEFund);
-      return `At the current contribution pace, your emergency-style bucket reaches the target in about <strong>${months.toFixed(1)} months</strong>.`;
-    }
-
-    function forecastMessage(c, f) {
-      if (c.postScenarioFreeCash < 0) return 'This forecast is negative after the selected scenario. Bucket growth may still occur from scheduled contributions, but the overall plan is under stress.';
-      if (state.allocateSurplus === 'yes') return `With surplus allocated by bucket priority, your dashboard is actively putting extra room to work over the next ${state.forecastMonths} months.`;
-      return `Surplus is being kept outside the buckets in this forecast. That is useful if you want to preserve optionality before deciding where the extra should go.`;
-    }
-
-    function forecastBuckets(bucketRows, postScenarioFreeCash) {
-      const months = state.forecastMonths;
-      const monthlyReturn = (state.bucketReturn / 100) / 12;
-      const balances = bucketRows.map(b => ({ ...b, balance: b.current }));
-      let surplusPool = 0;
-      const totalPriority = Math.max(1, sum(balances.map(b => Math.max(0, b.priority || 0))));
-      const timeline = { labels: [], totalBalances: [], surplusPool: [], emergency: [] };
-
-      for (let m = 1; m <= months; m++) {
-        balances.forEach(b => {
-          b.balance += b.monthlyContribution;
-          if (monthlyReturn > 0) b.balance *= (1 + monthlyReturn);
-        });
-
-        if (postScenarioFreeCash > 0) {
-          if (state.allocateSurplus === 'yes' && balances.length) {
-            balances.forEach(b => {
-              const share = Math.max(0, b.priority || 0) / totalPriority;
-              b.balance += postScenarioFreeCash * share;
-            });
-          } else {
-            surplusPool += postScenarioFreeCash;
-          }
-        }
-
-        timeline.labels.push(`M${m}`);
-        timeline.totalBalances.push(sum(balances.map(b => b.balance)));
-        timeline.surplusPool.push(surplusPool);
-        timeline.emergency.push(findEmergencyBalance(balances));
+  const minDebt = sum(items.filter(x=>/minimum/i.test(x.name)).map(x=>x.monthly));
+  const extraDebt = sum(items.filter(x=>/extra/i.test(x.name) || /payoff/i.test(x.name)).map(x=>x.monthly));
+  return { incomes, items, buckets, incomeMonthly, categoryTotals, bucketContributionMonthly, totalOutMonthly, freeCashMonthly, selectedScenario, selectedScenarioMonthlyDrag, postScenarioFreeCash, minDebt, extraDebt };
+}
+function forecastBuckets(model){
+  const months = state.forecastMonths;
+  const monthlyReturn = (state.bucketReturn/100)/12;
+  const balances = model.buckets.map(b => ({...b, balance: toNum(b.current)}));
+  let unallocatedSurplus = 0;
+  const totalPriority = Math.max(1, sum(balances.map(b => Math.max(0, toNum(b.priority)))));
+  const labels=[], totalBalances=[], emergency=[], surplus=[];
+  for(let m=1;m<=months;m++){
+    balances.forEach(b=>{
+      b.balance += toNum(b.monthlyContribution);
+      if(monthlyReturn>0) b.balance *= (1+monthlyReturn);
+    });
+    if(model.postScenarioFreeCash > 0){
+      if(state.allocateSurplus === 'yes' && balances.length){
+        balances.forEach(b=>{ b.balance += model.postScenarioFreeCash * (Math.max(0,toNum(b.priority))/totalPriority); });
+      }else{
+        unallocatedSurplus += model.postScenarioFreeCash;
       }
-
-      return {
-        bucketResults: balances.map((b, i) => ({ name: b.name, start: bucketRows[i].current, end: b.balance, target: b.target })),
-        totalEndingBalance: sum(balances.map(b => b.balance)),
-        unallocatedSurplus: surplusPool,
-        timeline
-      };
     }
+    labels.push(`M${m}`);
+    totalBalances.push(sum(balances.map(b=>b.balance)));
+    emergency.push(sum(balances.filter(b=>/emergency/i.test(b.name)).map(b=>b.balance)));
+    surplus.push(unallocatedSurplus);
+  }
+  return { labels, totalBalances, emergency, surplus, bucketResults: balances.map(b=>({name:b.name,start:b.current,end:b.balance,target:b.target})) };
+}
 
-    function frequencySelect(row, kind) {
-      const options = kind === 'income'
-        ? [['weekly','Weekly'],['biweekly','Biweekly'],['monthly','Monthly'],['quarterly','Quarterly'],['annual','Annual'],['one-time','One-time / irregular']]
-        : [['monthly','Monthly'],['quarterly','Quarterly'],['semiannual','Twice per year'],['annual','Annual'],['one-time','One-time / ignore monthly']];
-      return `<select data-type="${kind}" data-id="${row.id}" data-field="frequency">${options.map(([val, label]) => `<option value="${val}" ${row.frequency === val ? 'selected' : ''}>${label}</option>`).join('')}</select>`;
+function renderAllOutputs(initial=false){
+  saveState();
+  refs.forecastScenarioSelect.innerHTML = ['<option value="">No scenario / base budget</option>']
+    .concat(state.scenarios.map(s=>`<option value="${s.id}" ${s.id===state.selectedForecastScenarioId?'selected':''}>${escapeHtml(s.name)}</option>`))
+    .join('');
+  refs.forecastScenarioSelect.value = state.selectedForecastScenarioId || '';
+
+  const c = computeModel();
+  const f = forecastBuckets(c);
+
+  document.getElementById('topStats').innerHTML = [
+    statCard('Monthly income', money(c.incomeMonthly)),
+    statCard('Visible spending', money(c.totalOutMonthly)),
+    statCard('Free cash', money(c.freeCashMonthly), c.freeCashMonthly>=0?'good':'danger-text'),
+    statCard('After selected scenario', money(c.postScenarioFreeCash), c.postScenarioFreeCash>=0?'good':'danger-text')
+  ].join('');
+  document.getElementById('headlineMessage').innerHTML = headlineMessage(c);
+  document.getElementById('weaknessList').innerHTML = buildWeaknesses(c).join('');
+  document.getElementById('scenarioSummary').innerHTML = scenarioSummary(c).join('');
+
+  document.getElementById('incomeStats').innerHTML = [
+    statCard('My biweekly pay', money(monthlyEquivalent(findIncome(/my biweekly pay/i)?.amount || 0, findIncome(/my biweekly pay/i)?.frequency || 'biweekly'))),
+    statCard("Wife biweekly pay", money(monthlyEquivalent(findIncome(/wife/i)?.amount || 0, findIncome(/wife/i)?.frequency || 'biweekly'))),
+    statCard('Child support monthly', money(sum(c.incomes.filter(i=>/child support/i.test(i.name)).map(i=>i.monthly)))),
+    statCard('All income monthly', money(c.incomeMonthly))
+  ].join('');
+
+  document.getElementById('budgetStats').innerHTML = [
+    statCard('Required', money(c.categoryTotals.required)),
+    statCard('Essential', money(c.categoryTotals.essential)),
+    statCard('Sinking funds', money(c.categoryTotals.sinking)),
+    statCard('Lifestyle', money(c.categoryTotals.lifestyle))
+  ].join('');
+  document.getElementById('debtMessage').innerHTML = debtMessage(c);
+
+  const emergencyStart = sum(c.buckets.filter(b=>/emergency/i.test(b.name)).map(b=>toNum(b.current)));
+  const emergencyMonthly = sum(c.buckets.filter(b=>/emergency/i.test(b.name)).map(b=>b.monthlyContribution));
+  const monthsToEmergency = emergencyMonthly>0 ? Math.max(0,(state.emergencyTarget-emergencyStart)/emergencyMonthly) : 0;
+  document.getElementById('bucketStats').innerHTML = [
+    statCard('Bucket balances now', money(sum(c.buckets.map(b=>toNum(b.current))))),
+    statCard('Monthly bucket funding', money(c.bucketContributionMonthly)),
+    statCard('Emergency target', money(state.emergencyTarget)),
+    statCard('Months to emergency target', emergencyMonthly>0 ? monthsToEmergency.toFixed(1) : 'n/a')
+  ].join('');
+  document.getElementById('bucketCallout').innerHTML = emergencyStart >= state.emergencyTarget
+    ? `Your emergency-style bucket already meets the target of <strong>${money(state.emergencyTarget)}</strong>.`
+    : `At the current pace, your emergency-style bucket reaches <strong>${money(state.emergencyTarget)}</strong> in about <strong>${monthsToEmergency.toFixed(1)} months</strong>.`;
+
+  document.getElementById('decisionMessage').innerHTML = decisionMessage(c);
+  document.getElementById('decisionStats').innerHTML = [
+    statCard('Selected monthly drag', money(c.selectedScenarioMonthlyDrag)),
+    statCard('Minimum debt', money(c.minDebt)),
+    statCard('Extra debt payoff', money(c.extraDebt)),
+    statCard('Bucket funding', money(c.bucketContributionMonthly))
+  ].join('');
+
+  document.getElementById('forecastStats').innerHTML = [
+    statCard('Forecast months', String(state.forecastMonths)),
+    statCard('Projected bucket ending total', money(f.totalBalances.at(-1) || sum(c.buckets.map(b=>b.current)))),
+    statCard('Unallocated surplus', money(f.surplus.at(-1) || 0)),
+    statCard('Monthly room after scenario', money(c.postScenarioFreeCash), c.postScenarioFreeCash>=0?'good':'danger-text')
+  ].join('');
+  document.getElementById('forecastMessage').innerHTML = forecastMessage(c);
+  document.getElementById('forecastBucketTable').innerHTML = f.bucketResults.map(r=>`
+    <tr>
+      <td>${escapeHtml(r.name)}</td>
+      <td class="number">${money(r.start)}</td>
+      <td class="number">${money(r.end)}</td>
+      <td class="number">${money(r.target)}</td>
+    </tr>
+  `).join('');
+
+  upsertChart('cashflowChart','bar',{
+    labels:['Income','Visible spending','Free cash','After selected scenario'],
+    datasets:[{label:'Monthly',data:[c.incomeMonthly,c.totalOutMonthly,c.freeCashMonthly,c.postScenarioFreeCash]}]
+  });
+  upsertChart('expenseMixChart','doughnut',{
+    labels:['Required','Essential','Sinking','Wealth','Lifestyle','Buckets'],
+    datasets:[{data:[c.categoryTotals.required,c.categoryTotals.essential,c.categoryTotals.sinking,c.categoryTotals.wealth,c.categoryTotals.lifestyle,c.bucketContributionMonthly]}]
+  });
+  upsertChart('incomeMixChart','doughnut',{
+    labels:c.incomes.map(i=>i.name),
+    datasets:[{data:c.incomes.map(i=>i.monthly)}]
+  });
+  upsertChart('categoryBarChart','bar',{
+    labels:['Required','Essential','Sinking','Wealth','Lifestyle'],
+    datasets:[{label:'Monthly totals',data:[c.categoryTotals.required,c.categoryTotals.essential,c.categoryTotals.sinking,c.categoryTotals.wealth,c.categoryTotals.lifestyle]}]
+  });
+  upsertChart('bucketChart','bar',{
+    labels:c.buckets.map(b=>b.name),
+    datasets:[{label:'Current balances',data:c.buckets.map(b=>b.current)}]
+  });
+  upsertChart('scenarioChart','bar',{
+    labels:state.scenarios.map(s=>s.name),
+    datasets:[{label:'Horizon total',data:state.scenarios.map(s=>scenarioTotal(s,state.forecastMonths))}]
+  });
+  upsertChart('forecastChart','line',{
+    labels:f.labels,
+    datasets:[
+      {label:'Bucket balances',data:f.totalBalances},
+      {label:'Emergency bucket',data:f.emergency},
+      {label:'Unallocated surplus',data:f.surplus}
+    ]
+  }, {responsive:true, maintainAspectRatio:false});
+}
+function upsertChart(id,type,data,options={}){
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, {
+    type, data,
+    options: Object.assign({responsive:true, maintainAspectRatio:false}, options)
+  });
+}
+function statCard(label, value, className=''){ return `<div class="stat"><div class="label">${label}</div><div class="value ${className}">${value}</div></div>`; }
+function findIncome(regex){ return state.incomes.find(i=>regex.test(i.name)); }
+
+function headlineMessage(c){
+  if(c.freeCashMonthly < 0) return `Your current setup is running <strong>${money(Math.abs(c.freeCashMonthly))}</strong> short each month. Before adding a vehicle, fix the structure.`;
+  if(c.postScenarioFreeCash < 0) return `After the selected scenario, the budget goes negative by <strong>${money(Math.abs(c.postScenarioFreeCash))}</strong> per month.`;
+  if(c.postScenarioFreeCash < c.incomeMonthly * 0.08) return `You still stay positive, but only with <strong>${money(c.postScenarioFreeCash)}</strong> of monthly room after the selected choice.`;
+  return `You have <strong>${money(c.freeCashMonthly)}</strong> of visible monthly room before the selected scenario and <strong>${money(c.postScenarioFreeCash)}</strong> after it.`;
+}
+function buildWeaknesses(c){
+  const items = c.items;
+  const issues = [];
+  const hasInsurance = items.some(i=>/insurance/i.test(i.name));
+  const hasFuel = items.some(i=>/gas|fuel|charging/i.test(i.name));
+  const hasRepairs = items.some(i=>/repair|maintenance|tires/i.test(i.name));
+  const hasTravel = items.some(i=>/travel|vacation|trip|rental/i.test(i.name));
+  if(c.freeCashMonthly < 0) issues.push(`<div class="callout danger">Your monthly plan is negative. That usually means savings raids or hidden category cuts are propping it up.</div>`);
+  else if(c.freeCashMonthly < c.incomeMonthly * 0.08) issues.push(`<div class="callout warn">Your monthly margin is thin. One surprise month can wreck the plan.</div>`);
+  if(!hasInsurance) issues.push(`<div class="callout danger">No insurance line found. Even if you pay it annually from savings, keep it visible here as a monthly equivalent.</div>`);
+  if(!hasFuel) issues.push(`<div class="callout warn">No fuel or charging line found. That can make a vehicle decision look cleaner than it really is.</div>`);
+  if(!hasRepairs) issues.push(`<div class="callout warn">No maintenance or repair sinking fund found. That is how “unexpected” car and home costs sneak back in.</div>`);
+  if(!hasTravel) issues.push(`<div class="callout warn">No trip or rental bucket is visible. If Myrtle or Stafford matters, it needs to exist on purpose.</div>`);
+  if(c.categoryTotals.lifestyle > c.incomeMonthly * 0.12) issues.push(`<div class="callout warn">Lifestyle spending is eating a noticeable share of income. That may be fine, but it is also the easiest flex point.</div>`);
+  if((c.categoryTotals.required + c.categoryTotals.essential) > c.incomeMonthly * 0.75) issues.push(`<div class="callout danger">Required plus essential spending is taking most of income. A new car deserves extra skepticism in that setup.</div>`);
+  if(!issues.length) issues.push(`<div class="callout">No major structural red flags jumped out. That does not mean every decision is wise. It means the categories are visible enough to test honestly.</div>`);
+  return issues;
+}
+function scenarioSummary(c){
+  if(!state.scenarios.length) return [`<div class="callout warn">Add at least one scenario to compare options.</div>`];
+  const ranked = [...state.scenarios].map(s=>{
+    const total = scenarioTotal(s,state.forecastMonths);
+    return { ...s, total, monthlyDrag: total / Math.max(1,state.forecastMonths) };
+  }).sort((a,b)=>a.total-b.total);
+  return ranked.slice(0,3).map((s, idx)=>`
+    <div class="stat">
+      <div class="label">${idx===0?'Lowest-cost current scenario':'Alternative'}</div>
+      <div class="value" style="font-size:1.15rem">${escapeHtml(s.name)}</div>
+      <div class="small">Horizon cost ${money(s.total)} · Monthly drag ${money(s.monthlyDrag)}</div>
+    </div>
+  `);
+}
+function debtMessage(c){
+  if(c.minDebt===0 && c.extraDebt===0) return `No debt lines are being tracked.`;
+  if(c.extraDebt>0 && c.postScenarioFreeCash < c.extraDebt) return `Your extra debt payoff is <strong>${money(c.extraDebt)}</strong>, but the selected scenario leaves only <strong>${money(c.postScenarioFreeCash)}</strong> of room. That choice may quietly replace progress.`;
+  return `Minimum debt and extra payoff are separated, which is exactly what you want when comparing big decisions.`;
+}
+function decisionMessage(c){
+  if(!c.selectedScenario) return `Pick a scenario in Forecast to see how the dashboard treats that choice over time.`;
+  if(c.postScenarioFreeCash < 0) return `Right now, <strong>${escapeHtml(c.selectedScenario.name)}</strong> looks too aggressive unless something else gets cut.`;
+  if(c.postScenarioFreeCash < 750) return `<strong>${escapeHtml(c.selectedScenario.name)}</strong> can work, but it trims your flexibility.`;
+  return `<strong>${escapeHtml(c.selectedScenario.name)}</strong> fits the current structure reasonably well.`;
+}
+function forecastMessage(c){
+  if(c.postScenarioFreeCash < 0) return `This forecast is negative after the selected scenario. Bucket growth may still happen from scheduled contributions, but the plan is under stress.`;
+  if(state.allocateSurplus === 'yes') return `With surplus allocated by bucket priority, the forecast actively puts extra room to work over the next ${state.forecastMonths} months.`;
+  return `Surplus is being kept outside buckets in this forecast. That is useful when you want to preserve optionality.`;
+}
+function switchPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.toggle('active', btn.dataset.page===name));
+  setTimeout(()=>Object.values(charts).forEach(ch=>ch.resize()), 50);
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+function exportData(){
+  saveState();
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'budget-decision-dashboard-data.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try{
+      const imported = JSON.parse(evt.target.result);
+      if(!imported || !Array.isArray(imported.incomes) || !Array.isArray(imported.items) || !Array.isArray(imported.buckets) || !Array.isArray(imported.scenarios)) throw new Error('Invalid');
+      state = imported;
+      renderAll(true);
+    }catch{
+      alert('Could not import that file. Use a JSON file exported from this dashboard.');
     }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
 
-    function bucketFrequencySelect(row) {
-      const options = [['weekly','Weekly'],['biweekly','Biweekly'],['monthly','Monthly'],['quarterly','Quarterly'],['annual','Annual']];
-      return `<select data-type="bucket" data-id="${row.id}" data-field="contributionFrequency">${options.map(([val, label]) => `<option value="${val}" ${row.contributionFrequency === val ? 'selected' : ''}>${label}</option>`).join('')}</select>`;
-    }
-
-    function typeSelect(item) {
-      const options = [['required','Required'],['essential','Essential'],['sinking','Sinking fund'],['wealth','Wealth-building'],['lifestyle','Lifestyle']];
-      return `<select data-type="item" data-id="${item.id}" data-field="type">${options.map(([val, label]) => `<option value="${val}" ${item.type === val ? 'selected' : ''}>${label}</option>`).join('')}</select>`;
-    }
-
-    function monthlyEquivalent(amount, frequency) {
-      switch (frequency) {
-        case 'weekly': return amount * 52 / 12;
-        case 'biweekly': return amount * 26 / 12;
-        case 'monthly': return amount;
-        case 'quarterly': return amount / 3;
-        case 'semiannual': return amount / 6;
-        case 'annual': return amount / 12;
-        case 'one-time': return 0;
-        default: return amount;
-      }
-    }
-
-    function scenarioTotal(s) {
-      const monthlyEffects = (s.monthlyDelta || 0) + (s.monthlyInsuranceDelta || 0) + (s.monthlyFuelDelta || 0);
-      return (monthlyEffects * state.forecastMonths) + (s.oneTime || 0) + (s.rentals || 0);
-    }
-
-    function findEmergencyBalance(rows) {
-      return rows.filter(b => /emergency/i.test(b.name)).reduce((sum, b) => sum + b.balance, 0) || rows.filter(b => /emergency/i.test(b.name)).reduce((sum, b) => sum + b.current, 0);
-    }
-
-    function exportData() {
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'budget-decision-dashboard-data.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function importData(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const imported = JSON.parse(event.target.result);
-          if (!imported || !Array.isArray(imported.items) || !Array.isArray(imported.scenarios) || !Array.isArray(imported.incomes) || !Array.isArray(imported.buckets)) {
-            throw new Error('Invalid file');
-          }
-          state = {
-            emergencyTarget: imported.emergencyTarget ?? sampleData.emergencyTarget,
-            forecastMonths: imported.forecastMonths ?? sampleData.forecastMonths,
-            bucketReturn: imported.bucketReturn ?? 0,
-            allocateSurplus: imported.allocateSurplus ?? 'no',
-            selectedForecastScenarioId: imported.selectedForecastScenarioId ?? '',
-            incomes: imported.incomes,
-            items: imported.items,
-            buckets: imported.buckets,
-            scenarios: imported.scenarios
-          };
-          persistAndRender();
-        } catch {
-          alert('Could not import that file. Make sure it is a valid JSON export from this dashboard.');
-        }
-      };
-      reader.readAsText(file);
-      e.target.value = '';
-    }
-
-    function persistAndRender(full = true) {
-      saveState();
-      if (full) render();
-      else {
-        renderIncomeTable();
-        renderBudgetTable();
-        renderBucketTable();
-        renderScenarioTable();
-        renderScenarioSelect();
-        renderStatsAndCharts();
-        saveState();
-      }
-    }
-
-    function upsertChart(id, type, data, options) {
-      const ctx = document.getElementById(id);
-      if (!ctx) return;
-      if (charts[id]) charts[id].destroy();
-      charts[id] = new Chart(ctx, { type, data, options });
-    }
-
-    function resizeCharts() {
-      Object.values(charts).forEach(chart => chart.resize());
-    }
-
-    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-
-    function loadState() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return structuredClone(sampleData);
-      try {
-        const parsed = JSON.parse(raw);
-        return {
-          emergencyTarget: parsed.emergencyTarget ?? sampleData.emergencyTarget,
-          forecastMonths: parsed.forecastMonths ?? sampleData.forecastMonths,
-          bucketReturn: parsed.bucketReturn ?? 0,
-          allocateSurplus: parsed.allocateSurplus ?? 'no',
-          selectedForecastScenarioId: parsed.selectedForecastScenarioId ?? '',
-          incomes: Array.isArray(parsed.incomes) ? parsed.incomes : structuredClone(sampleData.incomes),
-          items: Array.isArray(parsed.items) ? parsed.items : structuredClone(sampleData.items),
-          buckets: Array.isArray(parsed.buckets) ? parsed.buckets : structuredClone(sampleData.buckets),
-          scenarios: Array.isArray(parsed.scenarios) ? parsed.scenarios : structuredClone(sampleData.scenarios)
-        };
-      } catch {
-        return structuredClone(sampleData);
-      }
-    }
-
-    function setBar(id, value) { document.getElementById(id).style.width = `${Math.min(Math.max(0, value), 100)}%`; }
-    function sum(arr) { return arr.reduce((a,b) => a + b, 0); }
-    function round2(v) { return Math.round((v || 0) * 100) / 100; }
-    function pct(value) { return Math.round((value || 0) * 100); }
-    function toNum(value) { const n = parseFloat(value); return Number.isFinite(n) ? n : 0; }
-    function money(value) { return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:0 }).format(value || 0); }
-    function escapeHtml(str) { return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
-  </script>
+renderAll(true);
+</script>
 </body>
 </html>
